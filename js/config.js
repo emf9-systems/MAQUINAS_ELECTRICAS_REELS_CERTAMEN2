@@ -2,7 +2,7 @@
 // La key "anon/publishable" es pública por diseño: la seguridad la dan las reglas (RLS) y funciones de supabase/schema.sql.
 // Si se dejan vacíos, la app funciona en modo local (sin login, ranking ni mercado).
 window.CERT_CONFIG = {
-  url: '',
-  key: '',
+  url: 'https://ymljpsekrvcexkinsqas.supabase.co',
+  key: 'sb_publishable_DJS8gdijjFiTjUxUuDXzYQ_WvcKo5R5',
   emailDomain: 'certamen2.app', // correo ficticio interno: usuario@certamen2.app (no se envían correos)
 };
