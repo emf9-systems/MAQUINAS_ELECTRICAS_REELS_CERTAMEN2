@@ -1,0 +1,12 @@
+{
+  "_ayuda": "PARTE 2: aquí se enchufa la multimedia. Deja una ruta (o lista de rutas) por clave; si falta, la app usa el efecto sintetizado. Ver assets/README.md.",
+  "cards": {},
+  "packs": {},
+  "reactions": { "happy": [], "sad": [], "hype": [] },
+  "sounds": {
+    "correct": null, "wrong": null, "coin": null, "click": null, "tick": null, "whoosh": null,
+    "combo": null, "levelup": null, "fanfare": null, "pack_shake": null, "pack_open": null,
+    "reveal_1": null, "reveal_2": null, "reveal_3": null, "reveal_4": null, "reveal_5": null
+  },
+  "avatars": []
+}
