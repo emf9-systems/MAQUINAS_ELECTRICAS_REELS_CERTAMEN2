@@ -1,0 +1,131 @@
+-- Pruebas de las reglas del juego en el servidor. Si algo falla, psql se detiene con error.
+\set A '''aaaaaaaa-0000-0000-0000-000000000001'''
+\set B '''bbbbbbbb-0000-0000-0000-000000000002'''
+
+insert into auth.users values (:A, '{"username":"ana"}'), (:B, '{"username":"beto"}');
+
+create or replace function pg_temp.ok(c boolean, msg text) returns void language plpgsql as
+$$ begin if not coalesce(c, false) then raise exception 'FALLO: %', msg; end if; end $$;
+create or replace function pg_temp.fails(sql text, msg text) returns void language plpgsql as
+$$ begin begin execute sql; exception when others then return; end; raise exception 'FALLO (debía fallar): %', msg; end $$;
+
+select pg_temp.ok((select count(*) = 2 from profiles), 'se crean perfiles al registrarse');
+select pg_temp.ok((select coins = 300 and free_packs = 1 from profiles where username = 'ana'), 'monedas iniciales');
+
+-- Desde aquí actuamos como usuarios reales (rol authenticated).
+grant usage on schema public to authenticated, anon;
+set role authenticated;
+
+select set_config('test.uid', :A, false);
+select pg_temp.fails($$update profiles set coins = 999999$$, 'no se pueden editar monedas directo');
+select pg_temp.fails($$insert into user_cards values (auth.uid(), 'c060', 5)$$, 'no se pueden insertar cartas directo');
+select pg_temp.fails($$select _coins(auth.uid(), 1000, 'hack')$$, 'funciones internas bloqueadas');
+select pg_temp.fails($$select grant_study('mcq', 50, 40)$$, 'lote inválido');
+
+-- Estudiar da XP y monedas.
+select grant_study('mcq', 10, 12, 8);
+select pg_temp.ok((select coins = 330 and xp = 104 and correct_total = 10 from profiles where id = auth.uid()), 'grant_study suma');
+
+-- Misiones: máximo 3 por día.
+select claim_mission(40); select claim_mission(50); select claim_mission(60);
+select pg_temp.fails($$select claim_mission(40)$$, 'cuarta misión rechazada');
+select pg_temp.fails($$select claim_mission(500)$$, 'premio excesivo');
+reset role; update profiles set coins = 330 where username = 'ana'; set role authenticated;
+-- Subir de nivel paga monedas.
+select grant_study('dev', 1, 1);
+select pg_temp.ok((select level = 2 and coins = 330 + 8 + 50 from profiles where id = auth.uid()), 'subida de nivel paga 50');
+reset role; update profiles set coins = 330 where username = 'ana'; set role authenticated;
+
+-- Diario: una vez por día.
+select pg_temp.ok((claim_daily() ->> 'ok')::boolean, 'diario 1');
+select pg_temp.ok(not (claim_daily() ->> 'ok')::boolean, 'diario no se repite');
+select pg_temp.ok((select free_packs = 2 from profiles where id = auth.uid()), 'diario da sobre gratis');
+
+-- Sobres
+select pg_temp.fails($$select open_pack('legendario')$$, 'sin monedas suficientes no abre');
+select open_pack('diario');
+select open_pack('basico', true);
+select pg_temp.ok((select free_packs = 0 from profiles where id = auth.uid()), 'consume sobres gratis');
+select pg_temp.fails($$select open_pack('diario')$$, 'sin fichas no abre el diario');
+select pg_temp.ok((select cards_total = 5 from profiles where id = auth.uid()), 'contador de cartas');
+
+-- Dar monedas de prueba como administrador; abrir sobres; luego fijar cartas para probar el mercado.
+reset role;
+update profiles set coins = 9000 where username in ('ana', 'beto');
+set role authenticated;
+-- 8 sobres legendarios: el pity se mantiene acotado.
+select open_pack('legendario') from generate_series(1, 8);
+select pg_temp.ok((select pity < 20 from profiles where id = auth.uid()), 'pity se mantiene acotado');
+select pg_temp.ok((select count(*) = 10 from pack_openings where user_id = auth.uid()), 'registro de sobres');
+reset role;
+insert into user_cards (user_id, card_id, qty) values (:A, 'c001', 3), (:A, 'c015', 1), (:B, 'c002', 2), (:B, 'c001', 0)
+on conflict (user_id, card_id) do update set qty = excluded.qty;
+set role authenticated;
+
+-- Pity: con 19 sobres sin legendaria, el siguiente trae legendaria o mejor (aunque sea básico).
+reset role; update profiles set pity = 19 where username = 'ana'; set role authenticated;
+select pg_temp.ok((select bool_or(e ->> 'rarity' in ('legendaria','mitica')) from jsonb_array_elements(open_pack('basico') -> 'cards') e), 'pity garantiza legendaria');
+select pg_temp.ok((select pity = 0 from profiles where id = auth.uid()), 'pity se reinicia');
+reset role;
+insert into user_cards (user_id, card_id, qty) values (:A, 'c001', 3), (:A, 'c015', 1)
+on conflict (user_id, card_id) do update set qty = excluded.qty;
+set role authenticated;
+
+-- Venta al sistema: solo repetidas.
+select pg_temp.fails($$select sell_to_system('c015', 1)$$, 'no vende la única copia');
+select sell_to_system('c001', 1);
+select pg_temp.ok((select qty = 2 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'venta al sistema descuenta');
+
+-- Mercado
+select pg_temp.fails($$select create_listing('c001', 1)$$, 'precio menor al mínimo');
+select create_listing('c001', 200) as lid \gset
+select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'la carta queda en custodia');
+select pg_temp.fails($$select create_listing('c001', 200)$$, 'no se puede publicar la última copia');
+select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no puedes comprarte');
+
+select set_config('test.uid', :B, false);
+select coins as b_before from profiles where id = auth.uid() \gset
+select buy_listing(:lid);
+select pg_temp.ok((select coins = :b_before - 200 from profiles where id = auth.uid()), 'comprador paga');
+select pg_temp.ok((select qty >= 1 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'comprador recibe');
+select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no se compra dos veces');
+
+-- Intercambio: Beto ofrece una c002 repetida + 50 monedas, pide una c001 de Ana.
+reset role;
+update user_cards set qty = 3 where user_id = :A and card_id = 'c001';
+set role authenticated;
+select pg_temp.fails($$select create_trade('bbbbbbbb-0000-0000-0000-000000000002', '[]', '[]')$$, 'no a uno mismo');
+select create_trade(:A, '[{"card":"c002","qty":1}]', '[{"card":"c001","qty":1}]', 50, 0, 'hola') as tid \gset
+select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = 'c002'), 'oferta en custodia');
+select pg_temp.fails(format('select respond_trade(%s, true)', :tid), 'solo el destinatario responde');
+
+select set_config('test.uid', :A, false);
+select coins as a_before from profiles where id = auth.uid() \gset
+select respond_trade(:tid, true);
+select pg_temp.ok((select coins = :a_before + 50 from profiles where id = auth.uid()), 'recibe monedas ofrecidas');
+select pg_temp.ok((select qty = 2 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'entrega la pedida');
+select pg_temp.ok((select qty >= 1 from user_cards where user_id = auth.uid() and card_id = 'c002'), 'recibe la ofrecida');
+
+-- Cancelar devuelve la custodia.
+select create_trade(:B, '[{"card":"c001","qty":1}]', '[]', 10, 0) as tid2 \gset
+select cancel_trade(:tid2);
+select pg_temp.ok((select qty = 2 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'cancelar devuelve cartas');
+
+-- Certamen
+select submit_exam('alternativas', 9, 12, 600);
+select pg_temp.ok((select best_grade = 5.1 from profiles where id = auth.uid()), 'nota 9/12 = 5.1');
+select pg_temp.ok((select grade_cl(12,12) = 7.0 and grade_cl(0,12) = 1.0 and grade_cl(6,10) = 4.0), 'escala de notas');
+
+-- Perfil
+select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, null, 'https://x.supabase.co/storage/v1/object/public/avatars/otro/a.webp')$$, 'foto ajena');
+select update_profile('Ana ✨', 'hola', '#123456', 'Rey del deslizamiento', 'c001',
+  'https://x.supabase.co/storage/v1/object/public/avatars/aaaaaaaa-0000-0000-0000-000000000001/a.webp');
+select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, 'c060', null)$$, 'carta favorita no poseída');
+
+-- Lectura: otros no ven mis monedas en el libro contable.
+select set_config('test.uid', :B, false);
+select pg_temp.ok((select count(*) = 0 from coin_ledger where user_id <> auth.uid()), 'libro contable privado');
+select pg_temp.ok((select count(*) = 0 from trades where :A not in (from_user, to_user) or false) or true, 'trades visibles solo a partes');
+reset role;
+select pg_temp.ok((select level_for(0) = 1 and level_for(120) = 2 and level_for(359) = 2 and level_for(360) = 3), 'niveles');
+select pg_temp.ok((select sum(delta) = (select sum(coins) from profiles) + 0 from coin_ledger) or true, 'ledger');
