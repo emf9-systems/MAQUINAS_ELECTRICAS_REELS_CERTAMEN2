@@ -101,7 +101,7 @@ tests/                  pruebas automáticas
 2. Ejecuta `python3 scripts/build-cards.py "<carpeta MONAS CLAUDE>"` y luego `npm run seed`. Necesita Python con Pillow.
 3. Pega `supabase/seed.sql` en el SQL Editor de Supabase.
 
-El script convierte todo a WebP: imagen completa de 520 px como máximo, animada si era GIF, más una miniatura fija de 260 px. Los ids se asignan en orden alfabético, así que conviene **agregar** archivos nuevos y no renombrar los que ya existen. Para cambiarle el nombre a una carta, usa `NAMES` en `js/data/catalog.js`.
+El script convierte todo a WebP: imagen completa de 520 px como máximo, animada si era GIF, más una miniatura fija de 260 px. Los ids se asignan en orden alfabético, así que conviene **agregar** archivos nuevos y no renombrar los que ya existen. Los nombres y series revisados a mano están en `scripts/card-names.txt` y mandan sobre lo que el script adivina del nombre del archivo.
 
 ### Cómo agregar contenido
 
