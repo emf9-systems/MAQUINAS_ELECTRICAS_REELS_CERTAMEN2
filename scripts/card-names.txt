@@ -28,10 +28,10 @@ c037 | μ's | Love Live!
 c038 | Eli, Maki y Nico | Love Live!
 c039 | Nishikino Maki | Love Live!
 c040 | Mari y Yoshiko | Love Live!
-c041 | Sakurauchi Riko | Love Live!
+c041 | Hoshizora Rin | Love Live!
 c042 | Yazawa Nico | Love Live!
 c043 | Kurosawa Ruby | Love Live!
-c044 | Chica de Love Live! | Love Live!
+c044 | Hoshizora Rin | Love Live!
 c045 | Tojo Nozomi | Love Live!
 c046 | Nozomi y Eli | Love Live!
 c047 | Minami Kotori | Love Live!
