@@ -71,7 +71,7 @@ function boosts(body, redraw) {
   const u = NET.boostUntil, now = Date.now();
   const act = [u.xp > now && `XP ×2 por ${minsLeft(u.xp)} min más`, u.coins > now && `monedas ×2 por ${minsLeft(u.coins)} min más`].filter(Boolean);
   body.append(h(`<h3 style="margin:18px 0 4px">⚡ Boosts</h3>`));
-  body.append(h(`<p class="small muted">Duplican lo que ganas respondiendo preguntas y haciendo simulacros. Si compras otro, se suma el tiempo (máximo 3 horas acumuladas). El tope diario de 1500 monedas por estudio no cambia.${act.length ? `<br><b class="boost-on">Activo: ${act.join(' y ')}.</b>` : ''}</p>`));
+  body.append(h(`<p class="small muted">Duplican lo que ganas respondiendo preguntas y haciendo simulacros. Si compras otro, se suma el tiempo (máximo 3 horas acumuladas). El tope diario de 3000 monedas por estudio no cambia.${act.length ? `<br><b class="boost-on">Activo: ${act.join(' y ')}.</b>` : ''}</p>`));
   const grid = h('<div class="packs boosts"></div>');
   for (const b of BOOSTS) {
     const r = b.rarity && RARITY[b.rarity];

@@ -38,7 +38,7 @@ export function afterProgress(beforeLv) {
 
 export function levelUp(lv) {
   SFX.levelup(); confetti(innerWidth / 2, innerHeight / 2, 120); coinRain(25); react('hype');
-  const el = h(`<div class="levelup"><small>¡SUBISTE DE NIVEL!</small><b>${lv}</b><span>${titleFor(lv)}</span><em>+50 🪙</em></div>`);
+  const el = h(`<div class="levelup"><small>¡SUBISTE DE NIVEL!</small><b>${lv}</b><span>${titleFor(lv)}</span><em>+100 🪙</em></div>`);
   document.body.append(el); setTimeout(() => el.remove(), 2600);
   NET.hype?.(`subió a nivel ${lv} ⚡`);
 }

@@ -357,7 +357,7 @@ begin
   select level into old_lv from profiles where id = p_user for update;
   update profiles set xp = xp + p_xp, level = level_for(xp + p_xp), updated_at = now()
    where id = p_user returning level into new_lv;
-  if new_lv > old_lv then perform _coins(p_user, 50 * (new_lv - old_lv), 'subida-nivel', new_lv::text); end if;
+  if new_lv > old_lv then perform _coins(p_user, 100 * (new_lv - old_lv), 'subida-nivel', new_lv::text); end if;
   return new_lv;
 end $$;
 
@@ -383,7 +383,7 @@ begin
     raise exception 'Lote inválido' using errcode = 'P0001';
   end if;
   select case p_kind when 'mcq' then 10 when 'rush' then 12 when 'dev' then 25 when 'lesson' then 15 else 0 end,
-         case p_kind when 'mcq' then 3  when 'rush' then 4  when 'dev' then 8  when 'lesson' then 5  else 0 end
+         case p_kind when 'mcq' then 6  when 'rush' then 8  when 'dev' then 16 when 'lesson' then 10 else 0 end
     into per_xp, per_coin;
   if per_xp = 0 then raise exception 'Tipo desconocido' using errcode = 'P0001'; end if;
   select _boost(boost_xp_until), _boost(boost_coins_until) into mx, mc from profiles where id = u;
@@ -392,7 +392,7 @@ begin
   insert into daily_stats (user_id, day) values (u, d) on conflict do nothing;
   select * into ds from daily_stats where user_id = u and day = d for update;
   gx := least(p_correct * per_xp + (p_answered - p_correct) * 2, greatest(0, 20000 - ds.xp));
-  gc := least(p_correct * per_coin, greatest(0, 1500 - ds.coins));
+  gc := least(p_correct * per_coin, greatest(0, 3000 - ds.coins));
   update daily_stats set xp = xp + gx, coins = coins + gc where user_id = u and day = d;
 
   perform _add_xp(u, gx);
@@ -427,7 +427,7 @@ begin
   select max(created_at) into last from exam_results where user_id = u and coins > 0;
   -- Monedas solo si el intento duró algo razonable y no se repite en ráfaga.
   if p_seconds >= p_total * 8 and (last is null or last < now() - interval '3 minutes') then
-    c := round(g * 20)::integer;
+    c := round(g * 40)::integer;
   end if;
   select _boost(boost_xp_until), _boost(boost_coins_until) into mx, mc from profiles where id = u;
   c := c * mc;
@@ -453,7 +453,7 @@ begin
     return jsonb_build_object('ok', false, 'streak', p.day_streak);
   end if;
   streak := case when p.last_daily = d - 1 then p.day_streak + 1 else 1 end;
-  bonus := 50 + 10 * least(streak, 10);
+  bonus := 100 + 20 * least(streak, 10);
   update profiles set last_daily = d, day_streak = streak, free_packs = least(free_packs + 1, 5), updated_at = now()
    where id = u;
   perform _coins(u, bonus, 'diario');
@@ -465,7 +465,7 @@ create or replace function public.claim_mission(p_coins integer)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare u uuid := me(); d date := today_cl(); ds daily_stats; v integer;
 begin
-  if p_coins not between 1 and 80 then raise exception 'Premio inválido' using errcode = 'P0001'; end if;
+  if p_coins not between 1 and 160 then raise exception 'Premio inválido' using errcode = 'P0001'; end if;
   insert into daily_stats (user_id, day) values (u, d) on conflict do nothing;
   select * into ds from daily_stats where user_id = u and day = d for update;
   if ds.missions >= 3 then raise exception 'Ya cobraste las misiones de hoy' using errcode = 'P0001'; end if;
@@ -561,7 +561,7 @@ end $$;
 -- 9b. RPC: tienda de boosts (misma tabla que BOOSTS en js/data/catalog.js)
 --     Se pagan con monedas o sacrificando una carta repetida de cierta rareza.
 --     Comprar otra vez alarga el tiempo, con un máximo de 3 horas acumuladas.
---     El tope diario de estudio (1500 monedas) sigue igual, para no inflar el mercado.
+--     El tope diario de estudio (3000 monedas) sigue igual, para no inflar el mercado.
 -- ---------------------------------------------------------------------
 create or replace function public.buy_boost(p_item text, p_card text default null)
 returns profiles language plpgsql security definer set search_path = public as $$

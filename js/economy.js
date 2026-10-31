@@ -2,14 +2,14 @@
 // Se usan en modo invitado (sin servidor) y en las pruebas automáticas.
 import { RARITIES, RARITY, PACK, CARDS, PITY_LIMIT, SELL_PRICE, BOOST, BOOST_MAX_MS } from './data/catalog.js';
 
-export const DAILY_BONUS = (streak) => 50 + 10 * Math.min(streak, 10);
-export const LEVEL_UP_COINS = 50;            // por cada nivel subido
+export const DAILY_BONUS = (streak) => 100 + 20 * Math.min(streak, 10);
+export const LEVEL_UP_COINS = 100;            // por cada nivel subido
 export const MISSIONS_PER_DAY = 3;
-export const EXAM_COINS = (grade) => Math.round(grade * 20);
+export const EXAM_COINS = (grade) => Math.round(grade * 40);
 export const STUDY = {                        // por respuesta correcta (igual que grant_study)
-  mcq: { xp: 10, coins: 3 }, rush: { xp: 12, coins: 4 }, dev: { xp: 25, coins: 8 }, lesson: { xp: 15, coins: 5 },
+  mcq: { xp: 10, coins: 6 }, rush: { xp: 12, coins: 8 }, dev: { xp: 25, coins: 16 }, lesson: { xp: 15, coins: 10 },
 };
-export const DAILY_CAP = { xp: 20000, coins: 1500 };
+export const DAILY_CAP = { xp: 20000, coins: 3000 };
 
 // Compra de un boost sobre {xp, coins} (horas de vencimiento en ms). Devuelve los nuevos vencimientos
 // o lanza error si se pasaría de 3 horas acumuladas. Igual que buy_boost en el servidor.
