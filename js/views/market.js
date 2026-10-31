@@ -2,7 +2,7 @@
 // Toda la lógica de seguridad está en el servidor (schema.sql); aquí solo está la interfaz.
 import { h, $, $$, esc, overlay, confirmBox } from '../dom.js';
 import { NET } from '../backend.js';
-import { CARDS, CARD, RARITY, RARITIES, SELL_PRICE, MARKET_FEE, MARKET_MAX, cardsFor } from '../data/catalog.js';
+import { CARDS, CARD, RARITY, RARITIES, SELL_PRICE, MARKET_FEE, MARKET_MAX, cardsFor, TRADE_LEVEL } from '../data/catalog.js';
 import { cardView, avatarView } from '../components.js';
 import { SFX, toast, confetti, coinRain } from '../fx.js';
 import { hud } from '../game.js';
@@ -90,6 +90,11 @@ export function sellDialog(id, onDone = () => { }) {
 // ---------------------------------------------------------------- intercambios
 export function renderTrades(body, p = {}) {
   if (!NET.online) return needAccount(body);
+  const lv = NET.profile?.level || 1;
+  if (lv < TRADE_LEVEL) {
+    body.append(h(`<div class="card center"><div style="font-size:42px">🔒</div><h3>Los intercambios se desbloquean al nivel ${TRADE_LEVEL}</h3><p class="muted">Vas en el nivel ${lv}. Sube respondiendo preguntas, haciendo simulacros y lecciones. Mientras tanto puedes usar el mercado.</p></div>`));
+    return;
+  }
   let unsub = () => { };
   const draw = async () => {
     body.innerHTML = '<p class="muted">Cargando…</p>';
@@ -147,6 +152,7 @@ export async function tradeDialog(toUsername = null, onDone = () => { }) {
     const tg = $('.target', box); tg.innerHTML = '';
     if (!u) { tg.append(h('<p class="bad small">No existe ese usuario.</p>')); return; }
     if (u.id === NET.user.id) { tg.append(h('<p class="bad small">No puedes intercambiar contigo mismo.</p>')); return; }
+    if ((u.level || 1) < TRADE_LEVEL) { tg.append(h(`<p class="bad small">Ese jugador va en el nivel ${u.level || 1}: los intercambios se desbloquean al nivel ${TRADE_LEVEL}.</p>`)); return; }
     const { cards } = await NET.publicProfile(u.id);
     // Cartas indecentes solo si ambos son indecentes.
     const both = cardsFor(NET.indecente && u.indecente);

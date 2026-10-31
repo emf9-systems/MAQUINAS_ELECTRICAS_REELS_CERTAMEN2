@@ -693,6 +693,13 @@ returns bigint language plpgsql security definer set search_path = public as $$
 declare u uuid := me(); e jsonb; tid bigint;
 begin
   perform _check_items(p_offer); perform _check_items(p_request);
+  -- Los intercambios se desbloquean al nivel 3 (para ambos jugadores).
+  if (select level from profiles where id = u) < 3 then
+    raise exception 'Los intercambios se desbloquean al nivel 3' using errcode = 'P0001';
+  end if;
+  if (select level from profiles where id = p_to) < 3 then
+    raise exception 'Ese jugador aún no llega al nivel 3' using errcode = 'P0001';
+  end if;
   if p_to = u or not exists (select 1 from profiles where id = p_to) then
     raise exception 'Destinatario inválido' using errcode = 'P0001';
   end if;

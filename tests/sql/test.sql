@@ -99,6 +99,16 @@ select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no se compra dos v
 -- Intercambio: Beto ofrece una c002 repetida + 50 monedas, pide una c001 de Ana.
 reset role;
 update user_cards set qty = 3 where user_id = :A and card_id = 'c001';
+update profiles set level = 2 where username = 'beto';
+set role authenticated;
+select pg_temp.fails($$select create_trade('aaaaaaaa-0000-0000-0000-000000000001', '[{"card":"c002","qty":1}]', '[]')$$, 'intercambios bloqueados bajo nivel 3');
+reset role;
+update profiles set level = 3 where username = 'beto';
+update profiles set level = 2 where username = 'ana';
+set role authenticated;
+select pg_temp.fails($$select create_trade('aaaaaaaa-0000-0000-0000-000000000001', '[{"card":"c002","qty":1}]', '[]')$$, 'el otro también debe tener nivel 3');
+reset role;
+update profiles set level = 3 where username in ('ana', 'beto', 'carla');
 set role authenticated;
 select pg_temp.fails($$select create_trade('bbbbbbbb-0000-0000-0000-000000000002', '[]', '[]')$$, 'no a uno mismo');
 select create_trade(:A, '[{"card":"c002","qty":1}]', '[{"card":"c001","qty":1}]', 50, 0, 'hola') as tid \gset
