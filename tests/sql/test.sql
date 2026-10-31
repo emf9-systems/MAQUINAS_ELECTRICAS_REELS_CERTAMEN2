@@ -168,20 +168,24 @@ select (select id from cards where rarity = 'legendaria' and not spicy order by 
 set role authenticated;
 select set_config('test.uid', :B, false);
 select pg_temp.fails($$select buy_boost('gratis')$$, 'boost desconocido');
+reset role; update profiles set last_boost = null where username = 'beto'; set role authenticated;
 select buy_boost('xp30');
 select pg_temp.ok((select coins = 9850 and boost_xp_until > now() + interval '29 minutes' and boost_coins_until is null from profiles where id = auth.uid()), 'xp30 cobra 150 y dura 30 min');
 select pg_temp.ok((select (r->>'xp')::int = 200 and (r->>'coins')::int = 60 from grant_study('mcq', 10, 10) r), 'boost de XP duplica solo la XP');
 select pg_temp.fails('select buy_boost(''coins60'', ''' || :'com' || ''')', 'carta de rareza equivocada');
+reset role; update profiles set last_boost = null where username = 'beto'; set role authenticated;
 select buy_boost('coins60', :'leg');
 select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = :'leg'), 'se sacrifica 1 legendaria');
 select pg_temp.ok((select (r->>'coins')::int = 120 from grant_study('mcq', 10, 10) r), 'boost de monedas duplica');
 reset role; update profiles set favorite_card = :'leg' where username = 'beto'; set role authenticated;
+reset role; update profiles set last_boost = null where username = 'beto'; set role authenticated;
 select buy_boost('coins60', :'leg');
 select pg_temp.ok((select qty = 0 from user_cards where user_id = auth.uid() and card_id = :'leg'), 'se puede sacrificar la última copia');
 select pg_temp.ok((select favorite_card is null from profiles where id = auth.uid()), 'sin la carta deja de ser la destacada');
+reset role; update profiles set last_boost = null where username = 'beto'; set role authenticated;
 select pg_temp.fails('select buy_boost(''coins60'', ''' || :'leg' || ''')', 'sin copias no hay sacrificio');
-select buy_boost('xp30') from generate_series(1, 5);   -- 6 × 30 min = 3 h justas
-select pg_temp.fails($$select buy_boost('xp30')$$, 'máximo 3 horas acumuladas');
+select buy_boost('xp30');
+select pg_temp.fails($$select buy_boost('xp30')$$, 'máximo 1 boost por día');
 reset role;
 update daily_stats set coins = 2995 where user_id = :B;
 set role authenticated;

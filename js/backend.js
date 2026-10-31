@@ -116,6 +116,7 @@ export const NET = {
     const t = (v) => (v ? Date.parse(v) : 0);
     return { xp: t(this.profile?.boost_xp_until), coins: t(this.profile?.boost_coins_until) };
   },
+  get boostToday() { return (this.online ? this.profile?.last_boost : S.lastBoost) === todayCL(); },
   get mult() { const u = this.boostUntil; return { xp: boostMult(u.xp), coins: boostMult(u.coins) }; },
   async buyBoost(id, card = null) {
     const b = BOOST[id];
@@ -124,6 +125,7 @@ export const NET = {
       this.profile = await this.rpc('buy_boost', { p_item: id, p_card: card });
       await this.refresh(); return;
     }
+    if (this.boostToday) throw new Error('Ya usaste tu boost de hoy. Vuelve mañana.');
     const until = addBoost(this.boostUntil, id);
     if (b.rarity) {
       if (CARD[card]?.rarity !== b.rarity) throw new Error('Ese boost pide una carta ' + b.rarity + '.');
@@ -133,7 +135,7 @@ export const NET = {
       if (S.coins < b.price) throw new Error('Monedas insuficientes.');
       S.coins -= b.price;
     }
-    S.boostXp = until.xp || 0; S.boostCoins = until.coins || 0; save(true); emit();
+    S.boostXp = until.xp || 0; S.boostCoins = until.coins || 0; S.lastBoost = todayCL(); save(true); emit();
   },
 
   addLocalCoins(n) { S.coins += n; save(); },

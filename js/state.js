@@ -13,7 +13,7 @@ export const DEFAULT = () => ({
   indecente: false, decided: false,   // modo indecente del invitado (las cuentas lo guardan en el servidor)
   // economía local (solo invitado)
   coins: START_COINS, cards: {}, freePacks: 1, pity: 0, lastDaily: null, dayStreak: 0,
-  boostXp: 0, boostCoins: 0,   // hora (ms) en que vence cada boost
+  boostXp: 0, boostCoins: 0, lastBoost: null,   // vencimiento (ms) de cada boost y día del último (1 por día)
   // progreso
   xp: 0, correct: 0, answered: 0, streak: 0, bestStreak: 0, bestGrade: 0, exams: [],
   lessons: {},            // { fund: { seen: true, quiz: 3 } }

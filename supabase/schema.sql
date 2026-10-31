@@ -73,6 +73,7 @@ alter table public.profiles add column if not exists indecente_at timestamptz;
 -- Boosts activos de la tienda: duplican XP y/o monedas de estudio hasta esa hora.
 alter table public.profiles add column if not exists boost_xp_until timestamptz;
 alter table public.profiles add column if not exists boost_coins_until timestamptz;
+alter table public.profiles add column if not exists last_boost date;   -- máximo 1 boost por día (hora de Chile)
 
 -- Progreso de estudio (lecciones vistas, ajustes, misiones): privado, cada uno el suyo.
 create table if not exists public.progress (
@@ -566,7 +567,7 @@ end $$;
 -- ---------------------------------------------------------------------
 -- 9b. RPC: tienda de boosts (misma tabla que BOOSTS en js/data/catalog.js)
 --     Se pagan con monedas o sacrificando una carta de cierta rareza (aunque sea la única copia).
---     Comprar otra vez alarga el tiempo, con un máximo de 3 horas acumuladas.
+--     Máximo 1 boost por día (hora de Chile), para que nadie queme todas sus legendarias.
 --     El tope diario de estudio (3000 monedas) sigue igual, para no inflar el mercado.
 -- ---------------------------------------------------------------------
 create or replace function public.buy_boost(p_item text, p_card text default null)
@@ -583,6 +584,9 @@ begin
    where b.id = p_item;
   if mins is null then raise exception 'Boost desconocido' using errcode = 'P0001'; end if;
   select * into p from profiles where id = u for update;
+  if p.last_boost = today_cl() then
+    raise exception 'Ya usaste tu boost de hoy. Vuelve mañana.' using errcode = 'P0001';
+  end if;
   if (bx and greatest(coalesce(p.boost_xp_until, now()), now()) + make_interval(mins => mins) > cap)
      or (bc and greatest(coalesce(p.boost_coins_until, now()), now()) + make_interval(mins => mins) > cap) then
     raise exception 'Ya tienes casi 3 horas de boost acumuladas. Espera a que baje.' using errcode = 'P0001';
@@ -598,7 +602,7 @@ begin
   update profiles set
     boost_xp_until = case when bx then greatest(coalesce(boost_xp_until, now()), now()) + make_interval(mins => mins) else boost_xp_until end,
     boost_coins_until = case when bc then greatest(coalesce(boost_coins_until, now()), now()) + make_interval(mins => mins) else boost_coins_until end,
-    updated_at = now()
+    last_boost = today_cl(), updated_at = now()
   where id = u returning * into p;
   return p;
 end $$;
