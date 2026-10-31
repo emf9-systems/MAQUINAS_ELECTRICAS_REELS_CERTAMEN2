@@ -14,7 +14,7 @@ Es una página estática (HTML + JavaScript, sin compilación) que se publica co
 | **Rush** | Feed vertical de preguntas con combos y multiplicadores (×1,5 / ×2 / ×3), preguntas doradas, cofres, jefes con tiempo y modo Sprint de 60 s. |
 | **Cartas** | 234 cartas con arte (161 decentes y 73 indecentes, varias animadas) en 5 rarezas, 4 sobres (diario gratis, básico, grande, legendario) con apertura estilo Clash Royale y pity (legendaria garantizada cada 20 sobres). Colección, venta de repetidas al juego (precio bajo) y destacar carta en el perfil. |
 | **Boosts** | Tienda en la pestaña Sobres: XP ×2 por 30 min (150 monedas), XP ×2 por 2 h o monedas ×2 por 1 h (sacrificando una legendaria) y ambos ×2 por 2 h (sacrificando una mítica). Máximo un boost por día. |
-| **Mercado** | Venta de cualquier carta a precio libre (5% de comisión), compra, cancelación e intercambios de cartas y/o monedas con custodia. |
+| **Mercado** | Venta de cualquier carta a precio libre (5% de comisión), compra y cancelación (comprar y vender se desbloquea al nivel 3, para frenar el traspaso de monedas entre multicuentas), e intercambios de cartas y/o monedas con custodia, abiertos para todos. |
 | **Ranking y perfil** | Ranking por XP, mejor nota, colección, racha y días seguidos. Perfil con foto, nombre visible, bio, título, color y carta destacada. Logros, misiones diarias y premio diario. |
 | **Estímulos** | Tres niveles (Zen, Normal, Dopamina máxima): sonidos sintetizados, confeti, sacudidas, textos flotantes, banners de combo, subida de nivel, vibración y "reacciones". Los espacios para GIF, imágenes y audios ya están listos (ver [`assets/README.md`](assets/README.md)). |
 

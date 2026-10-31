@@ -44,6 +44,7 @@ export const PACK = Object.fromEntries(PACKS.map(p => [p.id, p]));
 export const PITY_LIMIT = 20;
 export const MARKET_FEE = 0.05;      // 5% del precio se quema en cada venta entre jugadores
 export const MARKET_MAX = 100000;
+export const MARKET_LEVEL = 3;       // nivel mínimo para comprar/vender en el mercado (igual que _check_level)
 export const START_COINS = 300;
 
 // Tienda de boosts (misma tabla que buy_boost en supabase/schema.sql). Cada boost duplica

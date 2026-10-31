@@ -79,7 +79,14 @@ select pg_temp.fails($$select sell_to_system('c015', 1)$$, 'no vende la única c
 select sell_to_system('c001', 1);
 select pg_temp.ok((select qty = 2 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'venta al sistema descuenta');
 
--- Mercado
+-- Mercado (desde el nivel 3)
+reset role;
+update profiles set level = 2 where username = 'ana';
+set role authenticated;
+select pg_temp.fails($$select create_listing('c001', 200)$$, 'no vende bajo nivel 3');
+reset role;
+update profiles set level = 3 where username = 'ana';
+set role authenticated;
 select pg_temp.fails($$select create_listing('c001', 1)$$, 'precio menor al mínimo');
 select create_listing('c001', 200) as lid \gset
 select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'la carta queda en custodia');
@@ -90,6 +97,13 @@ select cancel_listing(:lid2);
 select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no puedes comprarte');
 
 select set_config('test.uid', :B, false);
+reset role;
+update profiles set level = 2 where username = 'beto';
+set role authenticated;
+select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no compra bajo nivel 3');
+reset role;
+update profiles set level = 3 where username in ('beto', 'carla');
+set role authenticated;
 select coins as b_before from profiles where id = auth.uid() \gset
 select buy_listing(:lid);
 select pg_temp.ok((select coins = :b_before - 200 from profiles where id = auth.uid()), 'comprador paga');
@@ -99,7 +113,9 @@ select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no se compra dos v
 -- Intercambio: Beto ofrece una c002 repetida + 50 monedas, pide una c001 de Ana.
 reset role;
 update user_cards set qty = 3 where user_id = :A and card_id = 'c001';
+update profiles set level = 1 where username in ('ana', 'beto');
 set role authenticated;
+-- (los intercambios no piden nivel: se prueban con ambos en nivel 1)
 select pg_temp.fails($$select create_trade('bbbbbbbb-0000-0000-0000-000000000002', '[]', '[]')$$, 'no a uno mismo');
 select create_trade(:A, '[{"card":"c002","qty":1}]', '[{"card":"c001","qty":1}]', 50, 0, 'hola') as tid \gset
 select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = 'c002'), 'oferta en custodia');
@@ -133,6 +149,7 @@ reset role;
 update profiles set coins = 100000 where username in ('ana', 'carla');
 insert into user_cards (user_id, card_id, qty) values (:A, 'h001', 3), (:C, 'h001', 3), (:C, 'h002', 2)
   on conflict (user_id, card_id) do update set qty = excluded.qty;
+update profiles set level = 3 where username in ('ana', 'beto', 'carla');
 set role authenticated;
 select set_config('test.uid', :A, false);
 select open_pack('legendario') from generate_series(1, 25);

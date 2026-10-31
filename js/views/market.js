@@ -2,7 +2,7 @@
 // Toda la lógica de seguridad está en el servidor (schema.sql); aquí solo está la interfaz.
 import { h, $, $$, esc, overlay, confirmBox } from '../dom.js';
 import { NET } from '../backend.js';
-import { CARDS, CARD, RARITY, RARITIES, SELL_PRICE, MARKET_FEE, MARKET_MAX, cardsFor } from '../data/catalog.js';
+import { CARDS, CARD, RARITY, RARITIES, SELL_PRICE, MARKET_FEE, MARKET_MAX, cardsFor, MARKET_LEVEL } from '../data/catalog.js';
 import { cardView, avatarView } from '../components.js';
 import { SFX, toast, confetti, coinRain } from '../fx.js';
 import { hud } from '../game.js';
@@ -17,6 +17,7 @@ const who = (p) => { const el = h('<span class="who"></span>'); el.append(avatar
 // ---------------------------------------------------------------- ventas
 export function renderMarket(body) {
   if (!NET.online) return needAccount(body);
+  if (marketLocked(body)) return;
   let rarity = '', unsub = () => { };
   const draw = async () => {
     body.innerHTML = '<p class="muted">Cargando mercado…</p>';
@@ -68,7 +69,17 @@ function pickDuplicate(cb, title = 'Elige una carta') {
   for (const c of dups) { const v = cardView(c.id, { small: true, qty: NET.cards[c.id] }); v.onclick = () => { ov.remove(); cb(c.id); }; $('.pick', box).append(v); }
 }
 
+// El mercado se desbloquea al nivel MARKET_LEVEL (evita pasar monedas entre multicuentas).
+function marketLocked(body) {
+  const lv = NET.profile?.level || 1;
+  if (lv >= MARKET_LEVEL) return false;
+  const el = h(`<div class="card center"><div style="font-size:42px">🔒</div><h3>El mercado se desbloquea al nivel ${MARKET_LEVEL}</h3><p class="muted">Vas en el nivel ${lv}. Sube respondiendo preguntas, haciendo simulacros y lecciones. Mientras tanto puedes intercambiar cartas con otros jugadores.</p></div>`);
+  if (body) body.append(el); else toast('Mercado bloqueado', `Se desbloquea al nivel ${MARKET_LEVEL} (vas en el ${lv}).`, '🔒', 'bad');
+  return true;
+}
+
 export function sellDialog(id, onDone = () => { }) {
+  if (marketLocked()) return;
   if (!NET.online) { toast('Necesitas una cuenta', 'El mercado funciona con el servidor', '🔒', 'bad'); return; }
   const min = SELL_PRICE(id), sug = { comun: 20, rara: 60, epica: 200, legendaria: 600, mitica: 1500 }[CARD[id].rarity];
   const box = h(`<form class="box"><h3>Vender en el mercado</h3><div class="dv"></div>

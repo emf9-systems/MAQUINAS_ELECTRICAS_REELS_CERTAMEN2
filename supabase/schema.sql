@@ -622,10 +622,21 @@ end $$;
 -- ---------------------------------------------------------------------
 -- La carta queda "en custodia" mientras está publicada: se descuenta del
 -- inventario al publicar y vuelve si se cancela. Así nadie vende dos veces.
+-- Mercado desde el nivel 3: así no sirve crear cuentas nuevas para pasarle
+-- sus monedas iniciales a la principal con ventas ficticias.
+create or replace function public._check_level(p_user uuid) returns void
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if (select level from profiles where id = p_user) < 3 then
+    raise exception 'El mercado se desbloquea al nivel 3' using errcode = 'P0001';
+  end if;
+end $$;
+
 create or replace function public.create_listing(p_card text, p_price integer)
 returns bigint language plpgsql security definer set search_path = public as $$
 declare u uuid := me(); minp integer; lid bigint;
 begin
+  perform _check_level(u);
   select r.sell_price into minp from cards c join rarities r on r.id = c.rarity where c.id = p_card;
   if minp is null then raise exception 'Carta desconocida' using errcode = 'P0001'; end if;
   perform _check_spicy(u, p_card);
@@ -659,6 +670,7 @@ begin
   select * into l from market_listings where id = p_id for update;
   if l.id is null or l.status <> 'open' then raise exception 'Esta carta ya no está a la venta' using errcode = 'P0001'; end if;
   if l.seller = u then raise exception 'No puedes comprarte a ti mismo' using errcode = 'P0001'; end if;
+  perform _check_level(u);
   perform _check_spicy(u, l.card_id);
   -- Bloqueo de ambos perfiles en orden fijo para evitar bloqueos cruzados.
   perform 1 from profiles where id in (u, l.seller) order by id for update;
