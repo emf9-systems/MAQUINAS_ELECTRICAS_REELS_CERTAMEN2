@@ -316,3 +316,22 @@ body[data-fx="zen"] .btn.pulse, body[data-fx="zen"] .chest, body[data-fx="zen"] 
   .h-xp { width: 46px; }
   .card-tcg { width: 120px; }
 }
+
+/* ---------------------------------------------------------------- decentes / indecentes */
+.card-tcg .spicy-tag { position: absolute; top: 6px; left: 6px; font-size: 12px; background: rgba(0, 0, 0, .6); border-radius: 999px; padding: 1px 5px; z-index: 2; }
+.card-tcg.spicy-blur .art img { filter: blur(14px) saturate(.7); transform: scale(1.15); }
+.card-tcg.spicy-blur .art::after { content: '🔞'; position: absolute; font-size: 28px; opacity: .85; }
+.card-tcg .art { position: relative; }
+.dbadge { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; vertical-align: middle; white-space: nowrap; }
+.dbadge.dec { background: rgba(76, 201, 240, .15); color: #8fe0ff; }
+.dbadge.ind { background: rgba(255, 79, 216, .18); color: #ff8be6; }
+.decency { max-width: 520px; }
+.dec-opts { display: grid; gap: 10px; margin: 12px 0; }
+.dec-opt { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 14px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .04); color: inherit; font: inherit; }
+.dec-opt > span { font-size: 28px; }
+.dec-good { cursor: pointer; } .dec-good:hover { border-color: #4cc9f0; }
+.dec-bad { border-color: rgba(255, 79, 216, .35); }
+.dec-opt .warn { color: #ffb4a8; margin: 0; }
+.bad-btn { background: #ff4fd8; color: #1a0f1f; font-weight: 700; }
+.bad-btn:disabled { opacity: .4; }
+.reaction img, .react img { max-width: 160px; border-radius: 12px; }

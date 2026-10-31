@@ -1,11 +1,11 @@
 // Punto de entrada: arma el HUD, la navegación y conecta todo.
 import { $, h, esc } from './dom.js';
-import { S, level } from './state.js';
+import { S, level, save } from './state.js';
 import { NET } from './backend.js';
 import { Media, SFX } from './fx.js';
 import { register, start, go, refreshView, viewName } from './router.js';
 import { setHud } from './game.js';
-import { avatarView } from './components.js';
+import { avatarView, decencyDialog } from './components.js';
 import * as home from './views/home.js';
 import * as learn from './views/learn.js';
 import * as practice from './views/practice.js';
@@ -55,6 +55,8 @@ async function boot() {
   drawHud();
   start('home');
   if (NET.mode === 'guest' && !localStorage.getItem('c2-seen-auth')) { localStorage.setItem('c2-seen-auth', '1'); go('profile', { auth: 1 }); }
+  // Modo local (sin servidor): la pregunta decente/indecente se hace al primer ingreso.
+  if (NET.mode === 'local' && !S.decided) { const ind = await decencyDialog(); if (ind !== null) { S.indecente = ind; S.decided = true; save(true); refreshView(); } }
   addEventListener('beforeunload', () => NET.pushNow());
   document.addEventListener('visibilitychange', () => { if (document.hidden) NET.pushNow(); });
 }

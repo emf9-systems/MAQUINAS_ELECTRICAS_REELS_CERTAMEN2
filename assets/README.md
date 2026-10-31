@@ -1,11 +1,11 @@
 # Multimedia (parte 2)
 
-La app ya funciona sin ningún archivo de esta carpeta: los sonidos se sintetizan y las cartas muestran un arte provisional.
+Las cartas (`assets/cards/`) y las reacciones (`assets/reactions/`) se generan con `python3 scripts/build-cards.py "<carpeta MONAS CLAUDE>"` (ver README principal). Los sonidos se sintetizan mientras no haya archivos.
 Para enchufar la multimedia basta con copiar los archivos aquí y anotarlos en `manifest.json`. No hay que tocar el código.
 
 | Clave en `manifest.json` | Qué es | Formato recomendado |
 |---|---|---|
-| `cards.c001` … `cards.c060` | Arte de cada carta (id = el de `js/data/catalog.js`) | WebP vertical 5:7, ~400×560, < 80 KB |
+| `cards.<id>` | (opcional) Reemplaza el arte de una carta. Normalmente no se usa: el arte sale de `assets/cards/<id>.webp`, que genera `scripts/build-cards.py` | WebP |
 | `packs.diario`, `packs.basico`, `packs.grande`, `packs.legendario` | Imagen del sobre en la tienda | WebP 3:4 |
 | `reactions.happy` / `sad` / `hype` | Listas de GIF/WebP animados que aparecen al acertar, fallar o en combos | WebP animado < 150 KB |
 | `sounds.correct`, `wrong`, `coin`, `click`, `tick`, `whoosh`, `combo`, `levelup`, `fanfare`, `pack_shake`, `pack_open` | Efectos de sonido (puede ser una ruta o una lista para elegir al azar) | MP3/OGG cortos (< 2 s) |

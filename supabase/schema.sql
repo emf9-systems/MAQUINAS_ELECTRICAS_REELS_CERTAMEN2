@@ -24,8 +24,10 @@ create table if not exists public.rarities (
 create table if not exists public.cards (
   id text primary key,                       -- c001, c002, …
   rarity text not null references public.rarities(id),
-  active boolean not null default true       -- false = ya no sale en sobres (pero se conserva)
+  active boolean not null default true,      -- false = ya no sale en sobres (pero se conserva)
+  spicy boolean not null default false       -- true = carta "indecente": solo para cuentas indecentes
 );
+alter table public.cards add column if not exists spicy boolean not null default false;
 
 create table if not exists public.packs (
   id text primary key,
@@ -65,6 +67,9 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Modo indecente: se elige al crear la cuenta o después en el perfil. NO se puede deshacer.
+alter table public.profiles add column if not exists indecente boolean not null default false;
+alter table public.profiles add column if not exists indecente_at timestamptz;
 
 -- Progreso de estudio (lecciones vistas, ajustes, misiones): privado, cada uno el suyo.
 create table if not exists public.progress (
@@ -193,7 +198,10 @@ create policy "mis sobres" on public.pack_openings for select using (auth.uid() 
 drop policy if exists "mis monedas" on public.coin_ledger;
 create policy "mis monedas" on public.coin_ledger for select using (auth.uid() = user_id);
 drop policy if exists "mercado publico" on public.market_listings;
-create policy "mercado publico" on public.market_listings for select using (true);
+-- Las publicaciones de cartas indecentes solo las ven las cuentas indecentes.
+create policy "mercado publico" on public.market_listings for select using (
+  not exists (select 1 from public.cards c where c.id = card_id and c.spicy)
+  or exists (select 1 from public.profiles p where p.id = auth.uid() and p.indecente));
 drop policy if exists "mis intercambios" on public.trades;
 create policy "mis intercambios" on public.trades for select using (auth.uid() in (from_user, to_user));
 
@@ -275,8 +283,10 @@ for each row execute function public._card_stats();
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  insert into profiles (id, username, display_name)
-  values (new.id, new.raw_user_meta_data ->> 'username', new.raw_user_meta_data ->> 'username');
+  insert into profiles (id, username, display_name, indecente, indecente_at)
+  values (new.id, new.raw_user_meta_data ->> 'username', new.raw_user_meta_data ->> 'username',
+          coalesce((new.raw_user_meta_data ->> 'indecente')::boolean, false),
+          case when coalesce((new.raw_user_meta_data ->> 'indecente')::boolean, false) then now() end);
   insert into coin_ledger (user_id, delta, reason) values (new.id, 300, 'bienvenida');
   return new;
 end $$;
@@ -310,6 +320,30 @@ begin
     updated_at = now()
   where id = u returning * into r;
   return r;
+end $$;
+
+-- Pasarse al lado indecente. Es de ida: no existe función para volver.
+create or replace function public.become_indecente()
+returns profiles language plpgsql security definer set search_path = public as $$
+declare r profiles;
+begin
+  update profiles set indecente = true, indecente_at = coalesce(indecente_at, now()), updated_at = now()
+   where id = me() returning * into r;
+  return r;
+end $$;
+
+create or replace function public._is_indecente(p_user uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce((select indecente from profiles where id = p_user), false)
+$$;
+
+-- Si la carta es indecente, la cuenta tiene que serlo.
+create or replace function public._check_spicy(p_user uuid, p_card text) returns void
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if exists (select 1 from cards where id = p_card and spicy) and not _is_indecente(p_user) then
+    raise exception 'Esa carta es solo para cuentas indecentes' using errcode = 'P0001';
+  end if;
 end $$;
 
 -- Suma XP, recalcula el nivel y paga 50 monedas por cada nivel subido.
@@ -478,9 +512,10 @@ begin
     -- Pity: tras muchos sobres sin legendaria, la última carta es legendaria o mejor.
     if i = pk.n_cards and p.pity + 1 >= pity_limit then min_rank := greatest(min_rank, leg_rank); end if;
     rar := _roll_rarity(pk.weights, min_rank);
-    select id into card from cards where rarity = rar and active order by random() limit 1;
+    -- Las cuentas decentes solo reciben cartas decentes.
+    select id into card from cards where rarity = rar and active and (not spicy or p.indecente) order by random() limit 1;
     if card is null then
-      select id into card from cards where active order by random() limit 1;
+      select id into card from cards where active and (not spicy or p.indecente) order by random() limit 1;
     end if;
     q := _give_card(u, card, 1);
     rk := (select r.rank from rarities r join cards c on c.rarity = r.id where c.id = card);
@@ -522,6 +557,7 @@ declare u uuid := me(); minp integer; lid bigint;
 begin
   select r.sell_price into minp from cards c join rarities r on r.id = c.rarity where c.id = p_card;
   if minp is null then raise exception 'Carta desconocida' using errcode = 'P0001'; end if;
+  perform _check_spicy(u, p_card);
   if p_price < minp or p_price > 100000 then
     raise exception 'El precio debe estar entre % y 100000', minp using errcode = 'P0001';
   end if;
@@ -552,6 +588,7 @@ begin
   select * into l from market_listings where id = p_id for update;
   if l.id is null or l.status <> 'open' then raise exception 'Esta carta ya no está a la venta' using errcode = 'P0001'; end if;
   if l.seller = u then raise exception 'No puedes comprarte a ti mismo' using errcode = 'P0001'; end if;
+  perform _check_spicy(u, l.card_id);
   -- Bloqueo de ambos perfiles en orden fijo para evitar bloqueos cruzados.
   perform 1 from profiles where id in (u, l.seller) order by id for update;
   fee := ceil(l.price * 0.05);           -- 5% de comisión que se "quema" (evita inflación)
@@ -597,6 +634,10 @@ begin
   if (select count(*) from trades where from_user = u and status = 'pending') >= 10 then
     raise exception 'Máximo 10 ofertas pendientes' using errcode = 'P0001';
   end if;
+  -- Cartas indecentes: solo entre dos cuentas indecentes.
+  for e in select * from jsonb_array_elements(p_offer || p_request) loop
+    perform _check_spicy(u, e ->> 'card'); perform _check_spicy(p_to, e ->> 'card');
+  end loop;
   -- Custodia de lo ofrecido (cartas repetidas y monedas).
   for e in select * from jsonb_array_elements(p_offer) loop
     perform _take_card(u, e ->> 'card', (e ->> 'qty')::integer, 1);
@@ -632,6 +673,9 @@ begin
     return 'rejected';
   end if;
   perform 1 from profiles where id in (t.from_user, t.to_user) order by id for update;
+  for e in select * from jsonb_array_elements(t.offer_cards || t.request_cards) loop
+    perform _check_spicy(u, e ->> 'card');
+  end loop;
   -- Lo que pide el otro sale de tus repetidas (siempre te queda 1 copia).
   for e in select * from jsonb_array_elements(t.request_cards) loop
     perform _take_card(u, e ->> 'card', (e ->> 'qty')::integer, 1);
@@ -666,6 +710,7 @@ end $$;
 -- ---------------------------------------------------------------------
 revoke execute on all functions in schema public from public, anon, authenticated;
 grant execute on function public.update_profile(text,text,text,text,text,text) to authenticated;
+grant execute on function public.become_indecente() to authenticated;
 grant execute on function public.grant_study(text,integer,integer,integer) to authenticated;
 grant execute on function public.submit_exam(text,integer,integer,integer) to authenticated;
 grant execute on function public.claim_daily() to authenticated;

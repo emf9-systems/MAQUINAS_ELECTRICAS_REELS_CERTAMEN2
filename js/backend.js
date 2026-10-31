@@ -65,8 +65,8 @@ export const NET = {
     if (r.error) throw new Error(friendly(r.error));
     await this.setUser(r.data.user);
   },
-  async signUp(user, pass) {
-    const r = await this.sb.auth.signUp({ email: this.email(user), password: pass, options: { data: { username: user } } });
+  async signUp(user, pass, indecente = false) {
+    const r = await this.sb.auth.signUp({ email: this.email(user), password: pass, options: { data: { username: user, indecente: !!indecente } } });
     if (r.error) throw new Error(friendly(r.error));
     if (!r.data.session) throw new Error('La cuenta quedó esperando confirmación por correo: en Supabase hay que desactivar "Confirm email".');
     await this.setUser(r.data.user, true);
@@ -103,6 +103,12 @@ export const NET = {
   get title() { return this.online ? this.profile?.title : S.title; },
   get favorite() { return this.online ? this.profile?.favorite_card : S.favorite; },
   get bio() { return this.online ? this.profile?.bio : S.bio; },
+  get indecente() { return this.online ? !!this.profile?.indecente : !!S.indecente; },
+  // Pasarse al lado indecente: no hay vuelta atrás (el servidor no tiene función para deshacerlo).
+  async becomeIndecente() {
+    if (this.online) { this.profile = await this.rpc('become_indecente'); emit(); return; }
+    S.indecente = true; S.decided = true; save(true); emit();
+  },
 
   addLocalCoins(n) { S.coins += n; save(); },
   localLevelBonus(oldXp) { const up = levelFor(S.xp) - levelFor(oldXp); if (up > 0 && !this.online) S.coins += LEVEL_UP_COINS * up; return up; },
@@ -131,7 +137,7 @@ export const NET = {
     }
     if (pk.freeOnly || useFree) { if (S.freePacks < 1) throw new Error('No tienes sobres gratis.'); S.freePacks--; }
     else { if (S.coins < pk.price) throw new Error('Monedas insuficientes.'); S.coins -= pk.price; }
-    const r = rollPack(packId, S.pity);
+    const r = rollPack(packId, S.pity, Math.random, S.indecente);
     S.pity = r.pity;
     const out = r.cards.map(c => { S.cards[c.card] = (S.cards[c.card] || 0) + 1; return { ...c, qty: S.cards[c.card], isNew: S.cards[c.card] === 1 }; });
     save(true); emit();
@@ -228,7 +234,7 @@ export const NET = {
     if (!this.sb) return null;
     const col = { xp: 'xp', grade: 'best_grade', cards: 'cards_unique', streak: 'best_streak', days: 'day_streak' }[order] || 'xp';
     const { data, error } = await this.sb.from('profiles')
-      .select('id,username,display_name,avatar_url,accent,title,level,xp,best_grade,cards_unique,best_streak,day_streak,favorite_card')
+      .select('id,username,display_name,avatar_url,accent,title,level,xp,best_grade,cards_unique,best_streak,day_streak,favorite_card,indecente')
       .order(col, { ascending: false }).order('xp', { ascending: false }).limit(100);
     if (error) throw new Error(friendly(error));
     return data;
@@ -242,7 +248,7 @@ export const NET = {
     return { profile: p.data, cards: Object.fromEntries((c.data || []).map(x => [x.card_id, x.qty])) };
   },
   async findUser(username) {
-    const { data } = await this.sb.from('profiles').select('id,username,display_name,avatar_url,accent,level').ilike('username', username.trim().replace(/[%_\\]/g, '\\$&')).limit(1).maybeSingle();
+    const { data } = await this.sb.from('profiles').select('id,username,display_name,avatar_url,accent,level,indecente').ilike('username', username.trim().replace(/[%_\\]/g, '\\$&')).limit(1).maybeSingle();
     return data;
   },
 
@@ -255,7 +261,7 @@ export const NET = {
     if (card) q = q.eq('card_id', card);
     const { data, error } = await q.order('price', { ascending: true }).limit(200);
     if (error) throw new Error(friendly(error));
-    return (data || []).filter(l => !rarity || CARD[l.card_id]?.rarity === rarity);
+    return (data || []).filter(l => CARD[l.card_id] && (!rarity || CARD[l.card_id].rarity === rarity) && (this.indecente || !CARD[l.card_id].spicy));
   },
   async createListing(card, price) {
     this.needOnline();

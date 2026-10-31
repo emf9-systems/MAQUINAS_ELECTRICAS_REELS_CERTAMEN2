@@ -10,6 +10,7 @@ export const DEFAULT = () => ({
   v: 1,
   // perfil local (invitado)
   name: '', avatar: '', bio: '', accent: '#ff6b4a', title: '', favorite: null,
+  indecente: false, decided: false,   // modo indecente del invitado (las cuentas lo guardan en el servidor)
   // economía local (solo invitado)
   coins: START_COINS, cards: {}, freePacks: 1, pity: 0, lastDaily: null, dayStreak: 0,
   // progreso
@@ -19,7 +20,7 @@ export const DEFAULT = () => ({
   guide: {},              // { guia_CC_4: 'ok' }
   devDone: 0,
   // ajustes
-  settings: { fx: 'max', sound: true, vibrate: true },
+  settings: { fx: 'max', sound: true, vibrate: true, unblur: false },   // unblur: miniaturas indecentes sin blur
   // diarios
   day: null, missions: [], ach: {},
   guest: false,

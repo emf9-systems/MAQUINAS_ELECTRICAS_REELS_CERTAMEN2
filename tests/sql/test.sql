@@ -1,15 +1,18 @@
 -- Pruebas de las reglas del juego en el servidor. Si algo falla, psql se detiene con error.
 \set A '''aaaaaaaa-0000-0000-0000-000000000001'''
 \set B '''bbbbbbbb-0000-0000-0000-000000000002'''
+\set C '''cccccccc-0000-0000-0000-000000000003'''
 
-insert into auth.users values (:A, '{"username":"ana"}'), (:B, '{"username":"beto"}');
+insert into auth.users values (:A, '{"username":"ana"}'), (:B, '{"username":"beto"}'), (:C, '{"username":"carla","indecente":true}');
 
 create or replace function pg_temp.ok(c boolean, msg text) returns void language plpgsql as
 $$ begin if not coalesce(c, false) then raise exception 'FALLO: %', msg; end if; end $$;
 create or replace function pg_temp.fails(sql text, msg text) returns void language plpgsql as
 $$ begin begin execute sql; exception when others then return; end; raise exception 'FALLO (debía fallar): %', msg; end $$;
 
-select pg_temp.ok((select count(*) = 2 from profiles), 'se crean perfiles al registrarse');
+select pg_temp.ok((select count(*) = 3 from profiles), 'se crean perfiles al registrarse');
+select pg_temp.ok((select indecente and indecente_at is not null from profiles where username = 'carla'), 'indecente al registrarse');
+select pg_temp.ok((select not indecente from profiles where username = 'ana'), 'decente por defecto');
 select pg_temp.ok((select coins = 300 and free_packs = 1 from profiles where username = 'ana'), 'monedas iniciales');
 
 -- Desde aquí actuamos como usuarios reales (rol authenticated).
@@ -121,6 +124,31 @@ select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, null,
 select update_profile('Ana ✨', 'hola', '#123456', 'Rey del deslizamiento', 'c001',
   'https://x.supabase.co/storage/v1/object/public/avatars/aaaaaaaa-0000-0000-0000-000000000001/a.webp');
 select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, 'c060', null)$$, 'carta favorita no poseída');
+
+-- Decentes e indecentes
+reset role;
+update profiles set coins = 100000 where username in ('ana', 'carla');
+insert into user_cards (user_id, card_id, qty) values (:A, 'h001', 3), (:C, 'h001', 3), (:C, 'h002', 2)
+  on conflict (user_id, card_id) do update set qty = excluded.qty;
+set role authenticated;
+select set_config('test.uid', :A, false);
+select open_pack('legendario') from generate_series(1, 25);
+select pg_temp.ok((select count(*) = 0 from pack_openings po, unnest(po.cards) c join cards k on k.id = c where po.user_id = auth.uid() and k.spicy), 'decente: sus sobres no traen indecentes');
+select pg_temp.fails($$select create_listing('h001', 100)$$, 'decente no publica indecentes');
+select pg_temp.fails($$select update profiles set indecente = false$$, 'nadie edita el modo directo');
+select set_config('test.uid', :C, false);
+select open_pack('legendario') from generate_series(1, 40);
+select pg_temp.ok((select count(*) > 0 from pack_openings po, unnest(po.cards) c join cards k on k.id = c where po.user_id = auth.uid() and k.spicy), 'indecente: le salen indecentes');
+select create_listing('h001', 200) as hl \gset
+select pg_temp.fails($$select create_trade('aaaaaaaa-0000-0000-0000-000000000001', '[{"card":"h002","qty":1}]', '[]')$$, 'no se ofrecen indecentes a un decente');
+select set_config('test.uid', :A, false);
+select pg_temp.ok((select count(*) = 0 from market_listings where id = :hl), 'decente no ve publicaciones indecentes');
+select pg_temp.fails('select buy_listing(' || :hl || ')', 'decente no compra indecentes');
+select become_indecente();
+select pg_temp.ok((select count(*) = 1 from market_listings where id = :hl), 'al volverse indecente ya la ve');
+select buy_listing(:hl);
+select pg_temp.ok((select indecente from profiles where id = auth.uid()), 'sigue indecente');
+select pg_temp.ok((select indecente from become_indecente()), 'no hay vuelta atrás');
 
 -- Lectura: otros no ven mis monedas en el libro contable.
 select set_config('test.uid', :B, false);

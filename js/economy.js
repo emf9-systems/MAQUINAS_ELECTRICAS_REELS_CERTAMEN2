@@ -20,8 +20,8 @@ export function rollRarity(weights, minRank, rand = Math.random) {
   return pool[pool.length - 1].id;
 }
 
-// Devuelve las cartas que salen y el nuevo pity.
-export function rollPack(packId, pity, rand = Math.random) {
+// Devuelve las cartas que salen y el nuevo pity. Las cuentas decentes solo reciben cartas decentes.
+export function rollPack(packId, pity, rand = Math.random, indecente = false) {
   const pk = PACK[packId];
   const out = [];
   let best = 0;
@@ -30,7 +30,7 @@ export function rollPack(packId, pity, rand = Math.random) {
     if (i === pk.n && pk.guaranteed) minRank = RARITY[pk.guaranteed].rank;
     if (i === pk.n && pity + 1 >= PITY_LIMIT) minRank = Math.max(minRank, RARITY.legendaria.rank);
     const rar = rollRarity(pk.weights, minRank, rand);
-    const pool = CARDS.filter(c => c.rarity === rar);
+    const pool = CARDS.filter(c => c.rarity === rar && (indecente || !c.spicy));
     const card = pool[Math.floor(rand() * pool.length)];
     best = Math.max(best, RARITY[rar].rank);
     out.push({ card: card.id, rarity: rar });
