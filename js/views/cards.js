@@ -71,18 +71,19 @@ function boosts(body, redraw) {
   const u = NET.boostUntil, now = Date.now();
   const act = [u.xp > now && `XP ×2 por ${minsLeft(u.xp)} min más`, u.coins > now && `monedas ×2 por ${minsLeft(u.coins)} min más`].filter(Boolean);
   body.append(h(`<h3 style="margin:18px 0 4px">⚡ Boosts</h3>`));
-  body.append(h(`<p class="small muted">Duplican lo que ganas respondiendo preguntas y haciendo simulacros. Si compras otro, se suma el tiempo (máximo 3 horas acumuladas). El tope diario de 3000 monedas por estudio no cambia.${act.length ? `<br><b class="boost-on">Activo: ${act.join(' y ')}.</b>` : ''}</p>`));
+  body.append(h(`<p class="small muted">Duplican lo que ganas respondiendo preguntas y haciendo simulacros. Puedes activar <b>un boost por día</b>. El tope diario de 3000 monedas por estudio no cambia.${act.length ? `<br><b class="boost-on">Activo: ${act.join(' y ')}.</b>` : ''}</p>`));
   const grid = h('<div class="packs boosts"></div>');
   for (const b of BOOSTS) {
     const r = b.rarity && RARITY[b.rarity];
     const pool = r ? Object.entries(NET.cards).filter(([id, q]) => q >= 1 && CARD[id]?.rarity === b.rarity).map(([id]) => id) : [];
-    const can = r ? pool.length > 0 : NET.coins >= b.price;
+    const used = NET.boostToday;
+    const can = !used && (r ? pool.length > 0 : NET.coins >= b.price);
     const cost = r ? `Sacrifica 1 carta <b style="color:${r.color}">${r.name}</b>` : `Cuesta 🪙 ${b.price}`;
     const c = h(`<div class="pack-card boost-card">
       <div class="boost-ico">${b.icon}</div>
       <b>${esc(b.name)}</b><small>Durante ${dur(b.mins)}</small>
       <small class="muted">${cost}</small>
-      <button class="btn ${can ? 'gold' : ''}" ${can ? '' : 'disabled'}>${r ? (can ? 'Elegir carta' : `Sin cartas ${r.name.toLowerCase()}s`) : `🪙 ${b.price}`}</button>
+      <button class="btn ${can ? 'gold' : ''}" ${can ? '' : 'disabled'}>${used ? 'Mañana' : r ? (can ? 'Elegir carta' : `Sin cartas ${r.name.toLowerCase()}s`) : `🪙 ${b.price}`}</button>
     </div>`);
     $('.btn', c).onclick = async () => {
       let card = null;

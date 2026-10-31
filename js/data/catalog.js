@@ -48,7 +48,7 @@ export const START_COINS = 300;
 
 // Tienda de boosts (misma tabla que buy_boost en supabase/schema.sql). Cada boost duplica
 // la XP y/o las monedas de estudio y simulacros; se paga con monedas o con una carta repetida.
-// Comprar otra vez alarga el tiempo, hasta 3 horas acumuladas. El tope diario no cambia.
+// Máximo 1 boost por día (hora de Chile). El tope diario de monedas no cambia.
 export const BOOSTS = [
   { id: 'xp30', name: 'XP ×2', mins: 30, price: 150, rarity: null, xp: true, coins: false, icon: '⚡' },
   { id: 'xp120', name: 'XP ×2', mins: 120, price: 0, rarity: 'legendaria', xp: true, coins: false, icon: '⚡' },
