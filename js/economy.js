@@ -9,7 +9,7 @@ export const EXAM_COINS = (grade) => Math.round(grade * 40);
 export const STUDY = {                        // por respuesta correcta (igual que grant_study)
   mcq: { xp: 10, coins: 6 }, rush: { xp: 12, coins: 8 }, dev: { xp: 25, coins: 16 }, lesson: { xp: 15, coins: 10 },
 };
-export const DAILY_CAP = { xp: 20000, coins: 3000 };
+export const DAILY_CAP = { xp: 20000 };   // monedas sin tope diario; el servidor solo limita a 60 respuestas por minuto
 
 // Compra de un boost sobre {xp, coins} (horas de vencimiento en ms). Devuelve los nuevos vencimientos
 // o lanza error si se pasaría de 3 horas acumuladas. Igual que buy_boost en el servidor.

@@ -187,9 +187,13 @@ select pg_temp.fails('select buy_boost(''coins60'', ''' || :'leg' || ''')', 'sin
 select buy_boost('xp30');
 select pg_temp.fails($$select buy_boost('xp30')$$, 'máximo 1 boost por día');
 reset role;
-update daily_stats set coins = 2995 where user_id = :B;
+update daily_stats set coins = 99999, win_start = null where user_id = :B;
 set role authenticated;
-select pg_temp.ok((select (r->>'coins')::int = 5 from grant_study('mcq', 10, 10) r), 'el tope diario se mantiene con boost');
+select pg_temp.ok((select (r->>'coins')::int = 120 from grant_study('mcq', 10, 10) r), 'sin tope diario de monedas');
+reset role;
+update daily_stats set win_start = now(), win_n = 55 where user_id = :B;
+set role authenticated;
+select pg_temp.ok((select (r->>'coins')::int = 60 and (r->>'capped')::boolean from grant_study('mcq', 10, 10) r), 'más de 60 respuestas por minuto no pagan');
 
 -- Lectura: otros no ven mis monedas en el libro contable.
 select set_config('test.uid', :B, false);
