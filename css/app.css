@@ -351,3 +351,5 @@ body[data-fx="zen"] .btn.pulse, body[data-fx="zen"] .chest, body[data-fx="zen"] 
 .boost-on { color: var(--gold); }
 body[data-fx="zen"] .h-boost { animation: none; }
 @media (max-width: 420px) { .h-boost { font-size: 11px; padding: 3px 7px; } }
+.box.welcome h2 { margin: 0 0 6px; }
+.box.welcome .acc > div > b { display: none; }   /* el título ya lo pone el pop-up */
