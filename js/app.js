@@ -1,5 +1,5 @@
 // Punto de entrada: arma el HUD, la navegación y conecta todo.
-import { $, h, esc } from './dom.js';
+import { $, h, esc, overlay } from './dom.js';
 import { S, level, save } from './state.js';
 import { NET } from './backend.js';
 import { Media, SFX } from './fx.js';
@@ -58,6 +58,20 @@ export function drawBoost() {
 }
 setHud(drawHud);
 
+// Pop-up de bienvenida para invitados: crear cuenta (por defecto), entrar o seguir sin cuenta.
+// Sale cada vez que se abre la web sin sesión, salvo que ya se haya cerrado en esta pestaña.
+function welcome() {
+  try { if (sessionStorage.getItem('c2-welcome-off')) return; } catch (e) { }
+  const box = h(`<div class="box welcome"><h2>¡Bienvenido! ⚡</h2>
+    <p class="muted">Para guardar tu progreso, aparecer en el ranking, abrir sobres con monedas del servidor y usar el mercado, crea tu cuenta. Si ya tienes una, entra.</p>
+    <div class="acc"></div>
+    <div class="row end"><button class="btn ghost later">Seguir como invitado</button></div></div>`);
+  const ov = overlay(box, { dismiss: false });
+  const close = () => { try { sessionStorage.setItem('c2-welcome-off', '1'); } catch (e) { } ov.remove(); };
+  profile.authForm($('.acc', box), true, { mode: 'signup', onDone: () => { ov.remove(); drawHud(true); refreshView(); } });
+  $('.later', box).onclick = close;
+}
+
 async function boot() {
   $('#hud .h-av').onclick = () => go('profile');
   $('#hud .h-coins').onclick = () => go('cards');
@@ -69,7 +83,7 @@ async function boot() {
   NET.joinLobby((ev) => { if (viewName() === 'home') refreshView(); });
   drawHud();
   start('home');
-  if (NET.mode === 'guest' && !localStorage.getItem('c2-seen-auth')) { localStorage.setItem('c2-seen-auth', '1'); go('profile', { auth: 1 }); }
+  if (NET.mode === 'guest') welcome();
   // Modo local (sin servidor): la pregunta decente/indecente se hace al primer ingreso.
   if (NET.mode === 'local' && !S.decided) { const ind = await decencyDialog(); if (ind !== null) { S.indecente = ind; S.decided = true; save(true); refreshView(); } }
   addEventListener('beforeunload', () => NET.pushNow());

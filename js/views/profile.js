@@ -103,8 +103,9 @@ export function render(root, p) {
   root.append(el);
 }
 
-function authForm(acc, focus) {
-  let mode = 'login';
+// Formulario de entrar / crear cuenta. Se usa en el perfil y en el pop-up de bienvenida.
+export function authForm(acc, focus, { mode: start = 'login', onDone = () => go('profile') } = {}) {
+  let mode = start;
   acc.append(h(`<div><b>Entra para competir en el ranking y usar el mercado</b><p class="small muted">Solo usuario y contraseña, sin correo. Cada cuenta parte con 300 monedas y un sobre gratis.</p>
     <div class="seg"><button data-m="login" class="active">Entrar</button><button data-m="signup">Crear cuenta</button></div>
     <form class="auth"><input class="input u" placeholder="Usuario (3–20: letras, números . _ -)" autocomplete="username" required>
@@ -112,7 +113,9 @@ function authForm(acc, focus) {
     <input class="input p2" type="password" placeholder="Repite la contraseña" autocomplete="new-password" hidden>
     <p class="err small bad"></p><button class="btn primary go">Entrar</button></form></div>`));
   const f = $('form', acc);
-  $$('.seg button', acc).forEach(b => b.onclick = () => { mode = b.dataset.m; $$('.seg button', acc).forEach(x => x.classList.toggle('active', x === b)); $('.p2', f).hidden = mode === 'login'; $('.p2', f).required = mode === 'signup'; $('.go', f).textContent = mode === 'login' ? 'Entrar' : 'Crear cuenta'; });
+  const setMode = (m) => { mode = m; $$('.seg button', acc).forEach(x => x.classList.toggle('active', x.dataset.m === m)); $('.p2', f).hidden = m === 'login'; $('.p2', f).required = m === 'signup'; $('.go', f).textContent = m === 'login' ? 'Entrar' : 'Crear cuenta'; };
+  $$('.seg button', acc).forEach(b => b.onclick = () => setMode(b.dataset.m));
+  setMode(start);
   f.onsubmit = async (e) => {
     e.preventDefault();
     const u = $('.u', f).value.trim(), pw = $('.p', f).value, err = $('.err', f);
@@ -127,7 +130,7 @@ function authForm(acc, focus) {
       if (mode === 'login') await NET.signIn(u, pw); else await NET.signUp(u, pw, ind);
       SFX.fanfare(); confetti(innerWidth / 2, innerHeight / 2, 80);
       toast(mode === 'login' ? '¡Hola de nuevo!' : '¡Cuenta creada!', u, '✓', 'gold');
-      NET.presence(); hud(true); go('profile');
+      NET.presence(); hud(true); onDone();
     } catch (ex) { err.textContent = ex.message; b.disabled = false; b.textContent = mode === 'login' ? 'Entrar' : 'Crear cuenta'; }
   };
   if (focus) setTimeout(() => $('.u', f).focus(), 50);
