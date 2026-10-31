@@ -2,9 +2,10 @@
 // Es la ÚNICA fuente de verdad: `node scripts/gen-seed.mjs` genera supabase/seed.sql desde aquí,
 // así el navegador (modo invitado) y el servidor usan exactamente los mismos números.
 //
-// PARTE 2 (multimedia): cada carta tiene `art: null`. Para ponerle imagen basta con llenar
-// assets/manifest.json → "cards": { "c001": "assets/cards/c001.webp", … } y cambiar nombre/serie aquí.
-// Los ids (c001…) NO se deben cambiar: son los que quedan guardados en la base de datos.
+// Los ids (c001…, h001…) NO se deben cambiar: son los que quedan guardados en la base de datos.
+// Cartas "spicy" (h…): solo salen en sobres, mercado e intercambios de cuentas indecentes.
+
+import { CARD_LIST } from './cards.js';
 
 export const RARITIES = [
   { id: 'comun', name: 'Común', rank: 1, sell: 5, color: '#9aa3b8', glow: 0 },
@@ -45,16 +46,18 @@ export const MARKET_FEE = 0.05;      // 5% del precio se quema en cada venta ent
 export const MARKET_MAX = 100000;
 export const START_COINS = 300;
 
-// 4 series × 15 cartas = 60 cartas. Por serie: 6 comunes, 4 raras, 3 épicas, 1 legendaria, 1 mítica.
-// Los nombres son provisorios hasta la parte 2.
-const SERIES = ['Serie Rotor', 'Serie Estator', 'Serie Entrehierro', 'Serie Conmutador'];
-const LAYOUT = ['comun', 'comun', 'comun', 'comun', 'comun', 'comun', 'rara', 'rara', 'rara', 'rara', 'epica', 'epica', 'epica', 'legendaria', 'mitica'];
+// Las cartas salen de la carpeta de monas: `python3 scripts/build-cards.py "<carpeta>"` genera
+// js/data/cards.js y las imágenes en assets/cards/ (c… = decentes, h… = indecentes).
+// Para cambiarle el nombre a una carta sin regenerar todo, agrégala aquí:
+const NAMES = {};
 
-export const CARDS = SERIES.flatMap((set, si) => LAYOUT.map((rarity, k) => {
-  const n = si * LAYOUT.length + k + 1;
-  const id = 'c' + String(n).padStart(3, '0');
-  return { id, n, set, rarity, name: 'Carta ' + String(n).padStart(3, '0'), art: null };
+export const CARDS = CARD_LIST.map((c, i) => ({
+  ...c, n: i + 1, name: NAMES[c.id] || c.name,
+  art: `assets/cards/${c.id}.webp`, thumb: `assets/cards/t/${c.id}.webp`,
 }));
 export const CARD = Object.fromEntries(CARDS.map(c => [c.id, c]));
 
 export const SELL_PRICE = (cardId) => RARITY[CARD[cardId]?.rarity]?.sell || 0;
+
+// Cartas que puede ver/conseguir una cuenta: las decentes ven solo las decentes.
+export const cardsFor = (indecente) => indecente ? CARDS : CARDS.filter(c => !c.spicy);

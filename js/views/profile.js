@@ -2,8 +2,8 @@
 import { h, $, $$, esc } from '../dom.js';
 import { S, save, level, titleFor, LEVEL_TITLES, ACH } from '../state.js';
 import { NET } from '../backend.js';
-import { CARDS, CARD } from '../data/catalog.js';
-import { avatarView, cardView, squareImage } from '../components.js';
+import { CARDS, CARD, cardsFor } from '../data/catalog.js';
+import { avatarView, cardView, squareImage, decencyDialog, decencyBadge } from '../components.js';
 import { toast, SFX, confetti } from '../fx.js';
 import { hud } from '../game.js';
 import { go } from '../router.js';
@@ -35,6 +35,7 @@ export function render(root, p) {
       <div class="seg fx"><button data-v="zen">🧘 Zen</button><button data-v="normal">🙂 Normal</button><button data-v="max">🤯 Dopamina máxima</button></div>
       <label class="check"><input type="checkbox" class="snd"> Sonidos</label>
       <label class="check"><input type="checkbox" class="vib"> Vibración (celular)</label>
+      <div class="lbl">Contenido de las cartas</div><div class="decency-set"></div>
     </div>
   </section>`);
 
@@ -76,7 +77,7 @@ export function render(root, p) {
 
   // ---- estadísticas y logros
   const owned = Object.values(NET.cards).filter(q => q > 0).length;
-  const stats = [['XP total', S.xp], ['Respuestas correctas', `${S.correct}/${S.answered}`], ['Mejor racha', S.bestStreak], ['Mejor nota', fmt(S.bestGrade || 0)], ['Simulacros', S.exams.length], ['Ejercicios de desarrollo', S.devDone], ['Guías resueltas', `${Object.values(S.guide).filter(x => x === 'ok').length}/26`], ['Colección', `${owned}/${CARDS.length}`], ['Récord sprint', S.sprintBest || 0]];
+  const stats = [['XP total', S.xp], ['Respuestas correctas', `${S.correct}/${S.answered}`], ['Mejor racha', S.bestStreak], ['Mejor nota', fmt(S.bestGrade || 0)], ['Simulacros', S.exams.length], ['Ejercicios de desarrollo', S.devDone], ['Guías resueltas', `${Object.values(S.guide).filter(x => x === 'ok').length}/26`], ['Colección', `${owned}/${cardsFor(NET.indecente).length}`], ['Récord sprint', S.sprintBest || 0]];
   $('.stats', el).innerHTML = stats.map(([k, v]) => `<div class="stat"><b>${esc(String(v))}</b><small>${k}</small></div>`).join('');
   $('.achs', el).innerHTML = ACH.map(a => `<div class="ach ${S.ach[a.id] ? 'got' : ''}"><b>${S.ach[a.id] ? '🏆' : '🔒'} ${esc(a.t)}</b><small>${esc(a.d)}</small></div>`).join('');
 
@@ -84,6 +85,21 @@ export function render(root, p) {
   $$('.fx button', el).forEach(b => { b.classList.toggle('active', b.dataset.v === S.settings.fx); b.onclick = () => { S.settings.fx = b.dataset.v; save(true); $$('.fx button', el).forEach(x => x.classList.toggle('active', x === b)); document.body.dataset.fx = S.settings.fx; if (b.dataset.v === 'max') { SFX.fanfare(); confetti(innerWidth / 2, innerHeight / 2, 80); } }; });
   $('.snd', el).checked = S.settings.sound; $('.snd', el).onchange = (e) => { S.settings.sound = e.target.checked; save(true); };
   $('.vib', el).checked = S.settings.vibrate; $('.vib', el).onchange = (e) => { S.settings.vibrate = e.target.checked; save(true); };
+  const ds = $('.decency-set', el);
+  if (NET.indecente) {
+    ds.append(h(`<p class="small">${decencyBadge(true)} Tienes acceso a las cartas indecentes. Esto ya no se puede deshacer.</p>`));
+    ds.append(h('<label class="check"><input type="checkbox" class="unblur"> Mostrar las miniaturas indecentes sin blur</label>'));
+    $('.unblur', ds).checked = S.settings.unblur; $('.unblur', ds).onchange = (e) => { S.settings.unblur = e.target.checked; save(true); };
+  } else {
+    ds.append(h(`<p class="small">${decencyBadge(false)} Solo ves, consigues y comercias cartas decentes.</p>`));
+    const b = h('<button class="btn sm">😈 Volverme indecente…</button>');
+    b.onclick = async () => {
+      if (await decencyDialog({ upgrade: true }) !== true) return;
+      try { await NET.becomeIndecente(); SFX.fanfare(); toast('Ahora eres indecente', 'Ya no hay vuelta atrás 😈', '😈', 'gold'); go('profile'); }
+      catch (err) { toast('No se pudo', err.message, '!', 'bad'); }
+    };
+    ds.append(b);
+  }
   root.append(el);
 }
 
@@ -104,9 +120,11 @@ function authForm(acc, focus) {
     if (!/^[A-Za-z0-9_.-]{3,20}$/.test(u)) { err.textContent = 'El usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo.'; return; }
     if (pw.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
     if (mode === 'signup' && pw !== $('.p2', f).value) { err.textContent = 'Las contraseñas no coinciden.'; return; }
+    let ind = false;
+    if (mode === 'signup') { ind = await decencyDialog(); if (ind === null) return; }
     const b = $('.go', f); b.disabled = true; b.textContent = 'Un momento…';
     try {
-      if (mode === 'login') await NET.signIn(u, pw); else await NET.signUp(u, pw);
+      if (mode === 'login') await NET.signIn(u, pw); else await NET.signUp(u, pw, ind);
       SFX.fanfare(); confetti(innerWidth / 2, innerHeight / 2, 80);
       toast(mode === 'login' ? '¡Hola de nuevo!' : '¡Cuenta creada!', u, '✓', 'gold');
       NET.presence(); hud(true); go('profile');
@@ -129,12 +147,12 @@ export function renderRanking(root, p) {
     let rows; try { await NET.flush(); rows = await NET.ranking(order); } catch (e) { board.innerHTML = `<p class="bad">${esc(e.message)}</p>`; return; }
     board.innerHTML = '';
     if (!rows.length) board.append(h('<p class="muted">Aún no hay jugadores. ¡Sé el primero!</p>'));
-    const val = (r) => ({ xp: `${r.xp} XP`, grade: fmt(Number(r.best_grade)), cards: `${r.cards_unique}/${CARDS.length}`, streak: `${r.best_streak} 🔥`, days: `${r.day_streak} días` }[order]);
+    const val = (r) => ({ xp: `${r.xp} XP`, grade: fmt(Number(r.best_grade)), cards: `${r.cards_unique}/${cardsFor(r.indecente).length}`, streak: `${r.best_streak} 🔥`, days: `${r.day_streak} días` }[order]);
     rows.forEach((r, i) => {
-      const row = h(`<button class="rank-row ${r.id === NET.user?.id ? 'me' : ''} ${i < 3 ? 'top' + (i + 1) : ''}" style="--ac:${esc(r.accent)}"><span class="pos">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><span class="av"></span><span class="grow"><b></b><small class="muted"></small></span><span class="val">${esc(val(r))}</span></button>`);
+      const row = h(`<button class="rank-row ${r.id === NET.user?.id ? 'me' : ''} ${i < 3 ? 'top' + (i + 1) : ''}" style="--ac:${esc(r.accent)}"><span class="pos">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span><span class="av"></span><span class="grow"><b></b> ${decencyBadge(r.indecente)}<small class="muted"></small></span><span class="val">${esc(val(r))}</span></button>`);
       $('.av', row).append(avatarView(r.avatar_url, r.display_name || r.username, r.accent, 36));
       $('b', row).textContent = r.display_name || r.username;
-      $('small', row).textContent = `Nv ${r.level} · ${r.title || titleFor(r.level)}`;
+      $('small.muted', row).textContent = `Nv ${r.level} · ${r.title || titleFor(r.level)}`;
       row.onclick = () => go('profile', { id: r.id });
       board.append(row);
     });
@@ -156,11 +174,12 @@ async function publicProfile(root, id) {
   $('.av', c).append(avatarView(pr.avatar_url, pr.display_name || pr.username, pr.accent, 84));
   $('h2', c).textContent = pr.display_name || pr.username;
   $('small', c).textContent = `@${pr.username} · Nivel ${pr.level} · ${pr.title || titleFor(pr.level)}`;
+  $('h2', c).insertAdjacentHTML('afterend', decencyBadge(pr.indecente));
   $('.bio', c).textContent = pr.bio || '';
-  $('.stats', c).innerHTML = [['XP', pr.xp], ['Mejor nota', fmt(Number(pr.best_grade))], ['Colección', `${pr.cards_unique}/${CARDS.length}`], ['Mejor racha', pr.best_streak], ['Simulacros', pr.exams_taken]].map(([k, v]) => `<div class="stat"><b>${esc(String(v))}</b><small>${k}</small></div>`).join('');
+  $('.stats', c).innerHTML = [['XP', pr.xp], ['Mejor nota', fmt(Number(pr.best_grade))], ['Colección', `${pr.cards_unique}/${cardsFor(pr.indecente).length}`], ['Mejor racha', pr.best_streak], ['Simulacros', pr.exams_taken]].map(([k, v]) => `<div class="stat"><b>${esc(String(v))}</b><small>${k}</small></div>`).join('');
   if (pr.favorite_card && CARD[pr.favorite_card]) { $('.favbox', c).append(h('<small class="muted">Carta destacada</small>')); $('.favbox', c).append(cardView(pr.favorite_card)); }
   if (NET.online && pr.id !== NET.user.id) { const b = h('<button class="btn primary">Proponer intercambio</button>'); b.onclick = () => go('cards', { tab: 'trades', to: pr.username }); $('.acts', c).append(b); }
   pp.append(c);
-  const dups = CARDS.filter(x => (d.cards[x.id] || 0) > 1);
+  const dups = cardsFor(NET.indecente).filter(x => (d.cards[x.id] || 0) > 1);
   if (dups.length) { const g = h('<div class="card"><h3>Sus repetidas (intercambiables)</h3><div class="col-grid"></div></div>'); dups.forEach(x => $('.col-grid', g).append(cardView(x.id, { small: true, qty: d.cards[x.id] }))); pp.append(g); }
 }

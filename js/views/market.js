@@ -2,7 +2,7 @@
 // Toda la lógica de seguridad está en el servidor (schema.sql); aquí solo está la interfaz.
 import { h, $, $$, esc, overlay, confirmBox } from '../dom.js';
 import { NET } from '../backend.js';
-import { CARDS, CARD, RARITY, RARITIES, SELL_PRICE, MARKET_FEE, MARKET_MAX } from '../data/catalog.js';
+import { CARDS, CARD, RARITY, RARITIES, SELL_PRICE, MARKET_FEE, MARKET_MAX, cardsFor } from '../data/catalog.js';
 import { cardView, avatarView } from '../components.js';
 import { SFX, toast, confetti, coinRain } from '../fx.js';
 import { hud } from '../game.js';
@@ -148,7 +148,9 @@ export async function tradeDialog(toUsername = null, onDone = () => { }) {
     if (!u) { tg.append(h('<p class="bad small">No existe ese usuario.</p>')); return; }
     if (u.id === NET.user.id) { tg.append(h('<p class="bad small">No puedes intercambiar contigo mismo.</p>')); return; }
     const { cards } = await NET.publicProfile(u.id);
-    const theirs = CARDS.filter(c => (cards[c.id] || 0) > 1), mine = CARDS.filter(c => (NET.cards[c.id] || 0) > 1);
+    // Cartas indecentes solo si ambos son indecentes.
+    const both = cardsFor(NET.indecente && u.indecente);
+    const theirs = both.filter(c => (cards[c.id] || 0) > 1), mine = both.filter(c => (NET.cards[c.id] || 0) > 1);
     const pickGrid = (list, src, sel) => {
       const g = h('<div class="col-grid pick"></div>');
       if (!list.length) g.append(h('<p class="small muted">Sin repetidas.</p>'));

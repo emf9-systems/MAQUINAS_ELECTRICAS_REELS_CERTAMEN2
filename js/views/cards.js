@@ -2,7 +2,7 @@
 import { h, $, $$, esc, overlay, confirmBox } from '../dom.js';
 import { S, mission, save } from '../state.js';
 import { NET } from '../backend.js';
-import { PACKS, PACK, CARDS, CARD, RARITY, RARITIES, PITY_LIMIT, SELL_PRICE } from '../data/catalog.js';
+import { PACKS, PACK, CARDS, CARD, RARITY, RARITIES, PITY_LIMIT, SELL_PRICE, cardsFor } from '../data/catalog.js';
 import { cardView } from '../components.js';
 import { SFX, confetti, shake, flash, toast, buzz, coinRain, Media, react } from '../fx.js';
 import { hud, rarityHype } from '../game.js';
@@ -122,6 +122,7 @@ function collection(body) {
   const draw = () => {
     body.innerHTML = '';
     const inv = NET.cards;
+    const CARDS = cardsFor(NET.indecente);
     const owned = CARDS.filter(c => inv[c.id] > 0).length;
     const dups = CARDS.reduce((a, c) => a + Math.max(0, (inv[c.id] || 0) - 1), 0);
     body.append(h(`<div class="card"><div class="row"><div class="grow"><b>${owned}/${CARDS.length} cartas</b> · ${dups} repetidas<div class="bar"><i style="width:${owned / CARDS.length * 100}%"></i></div></div><button class="btn sm sellall" ${dups ? '' : 'disabled'}>Vender repetidas comunes</button></div></div>`));

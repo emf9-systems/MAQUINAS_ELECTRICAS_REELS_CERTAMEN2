@@ -1,9 +1,11 @@
 // Piezas reutilizables: pregunta de alternativas, ejercicio de desarrollo, carta y avatar.
-import { h, $, $$, esc, tex } from './dom.js';
+import { h, $, $$, esc, tex, overlay } from './dom.js';
 import { parseNum, fmt, rng } from './util.js';
 import { checkNumeric, unitTxt } from './engine/mcq.js';
 import { CARD, RARITY } from './data/catalog.js';
 import { Media } from './fx.js';
+import { S } from './state.js';
+import { NET } from './backend.js';
 import { TOPIC } from './content/lessons.js';
 
 const LETTERS = 'ABCD';
@@ -119,17 +121,22 @@ export function devView(ex, opts = {}) {
 }
 
 // ---------------------------------------------------------------- cartas
-// Arte provisional generado (parte 2 lo reemplaza por la imagen del manifest).
+// Las miniaturas usan la imagen fija (liviana); la carta grande usa la animada.
+// Cartas indecentes: con blur para las cuentas decentes (siempre) y para las indecentes en miniatura,
+// salvo que hayan desactivado el blur en Ajustes.
+export const spicyBlur = (c, small) => c.spicy && (!NET.indecente || (small && !S.settings.unblur));
 export function cardView(id, { qty = null, small = false, locked = false, flip = false, isNew = false } = {}) {
   const c = CARD[id]; const r = RARITY[c.rarity];
-  const art = Media.card(id) || c.art;
-  const el = h(`<div class="card-tcg r-${c.rarity} ${small ? 'small' : ''} ${locked ? 'locked' : ''} ${flip ? 'face-down' : ''}" style="--rc:${r.color}" data-id="${id}">
+  const art = Media.card(id) || (small ? c.thumb : c.art);
+  const blur = spicyBlur(c, small);
+  const el = h(`<div class="card-tcg r-${c.rarity} ${small ? 'small' : ''} ${locked ? 'locked' : ''} ${flip ? 'face-down' : ''} ${c.spicy ? 'spicy' : ''} ${blur ? 'spicy-blur' : ''}" style="--rc:${r.color}" data-id="${id}">
     <div class="inner">
       <div class="front">
         <div class="art">${art ? `<img src="${esc(art)}" alt="" loading="lazy">` : `<div class="placeholder"><span>${String(c.n).padStart(3, '0')}</span><small>arte pendiente</small></div>`}</div>
         <div class="meta"><b class="cname">${esc(locked ? '???' : c.name)}</b><small>${esc(c.set)} · ${r.name}</small></div>
         ${qty !== null && qty > 0 ? `<span class="qty">×${qty}</span>` : ''}
         ${isNew ? '<span class="new">¡NUEVA!</span>' : ''}
+        ${c.spicy ? '<span class="spicy-tag" title="Carta indecente">🔞</span>' : ''}
       </div>
       <div class="back"><span>⚡</span></div>
     </div>
@@ -156,3 +163,32 @@ export async function squareImage(file, size = 256) {
   if (blob && blob.type === 'image/webp') return blob;
   return await new Promise(res => c.toBlob(res, 'image/jpeg', 0.85));
 }
+
+// ---------------------------------------------------------------- decente / indecente
+// Pregunta antes de crear la cuenta (o desde Ajustes). Devuelve true (indecente), false (decente) o null (cerró).
+// upgrade=true: la cuenta ya es decente y se está pasando al lado indecente.
+export function decencyDialog({ upgrade = false } = {}) {
+  return new Promise((resolve) => {
+    const box = h(`<div class="box decency">
+      <h2>${upgrade ? '😈 ¿Pasarte al lado indecente?' : 'Antes de empezar: ¿decente o indecente?'}</h2>
+      <p>Las cartas vienen en dos series. Las <b>decentes</b> son para todos. Las <b>indecentes</b> son monas <b>sugerentes</b> (ropa reveladora, poses provocativas).</p>
+      <div class="dec-opts">
+        ${upgrade ? '' : `<button class="dec-opt dec-good" type="button"><span>😇</span><b>Soy decente</b><small>Sobres, mercado e intercambios solo con cartas decentes. Puedes cambiar después en tu perfil.</small></button>`}
+        <div class="dec-opt dec-bad"><span>😈</span><b>Soy indecente</b><small>También te salen cartas indecentes en los sobres y puedes comerciarlas. Sus miniaturas tienen blur (lo puedes quitar en Ajustes).</small>
+          <label class="check"><input type="checkbox" class="age"> Tengo 18 años o más y quiero ver este contenido.</label>
+          <p class="small warn">⚠️ Esta elección <b>no se puede deshacer</b>, y el ranking muestra quién es indecente.</p>
+          <button class="btn bad-btn go-bad" type="button" disabled>Sí, soy indecente</button></div>
+      </div>
+      <div class="row end"><button class="btn ghost sm cancel" type="button">${upgrade ? 'Mejor no' : 'Volver'}</button></div></div>`);
+    const ov = overlay(box, { dismiss: false });
+    const done = (v) => { ov.remove(); resolve(v); };
+    const age = $('.age', box), go = $('.go-bad', box);
+    age.onchange = () => { go.disabled = !age.checked; };
+    go.onclick = () => done(true);
+    const good = $('.dec-good', box); if (good) good.onclick = () => done(false);
+    $('.cancel', box).onclick = () => done(null);
+  });
+}
+
+// Etiqueta para el ranking y los perfiles.
+export const decencyBadge = (ind) => ind ? '<span class="dbadge ind" title="Indecente">😈 indecente</span>' : '<span class="dbadge dec" title="Decente">😇 decente</span>';

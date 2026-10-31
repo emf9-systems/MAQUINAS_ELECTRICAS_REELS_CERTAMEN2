@@ -20,6 +20,17 @@ test('sobres: cantidad de cartas, garantía y pity', () => {
   }
 });
 
+test('sobres: decentes nunca reciben indecentes; indecentes sí', () => {
+  const r = rng(99);
+  let spicy = 0;
+  for (let i = 0; i < 3000; i++) {
+    for (const c of rollPack('legendario', 0, r.next).cards) assert.ok(!CARD[c.card].spicy, c.card);
+    for (const c of rollPack('legendario', 0, r.next, true).cards) if (CARD[c.card].spicy) spicy++;
+  }
+  assert.ok(spicy > 0);
+  assert.ok(CARDS.every(c => /^[ch]\d{3}$/.test(c.id) && c.spicy === c.id.startsWith('h')));
+});
+
 test('sobres: la frecuencia se parece a las probabilidades publicadas', () => {
   const r = rng(7), counts = {};
   const N = 40000;
@@ -30,7 +41,7 @@ test('sobres: la frecuencia se parece a las probabilidades publicadas', () => {
 
 test('catálogo y seed.sql están sincronizados', () => {
   const sql = readFileSync(new URL('../supabase/seed.sql', import.meta.url), 'utf8');
-  for (const c of CARDS) assert.ok(sql.includes(`('${c.id}', '${c.rarity}', true)`), c.id);
+  for (const c of CARDS) assert.ok(sql.includes(`('${c.id}', '${c.rarity}', true, ${!!c.spicy})`), c.id);
   for (const p of PACKS) assert.ok(sql.includes(`('${p.id}', ${p.price}, ${p.n},`), p.id);
 });
 

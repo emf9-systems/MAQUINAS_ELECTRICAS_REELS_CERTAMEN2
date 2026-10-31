@@ -12,7 +12,7 @@ Es una página estática (HTML + JavaScript, sin compilación) que se publica co
 | **Practicar** | Desarrollo escrito por teclado (cuadro para el desarrollo + una casilla por resultado, corrección con ±2% de tolerancia y pauta paso a paso). Las 26 preguntas de las guías (9 CC + 17 CA) resueltas. Banco de alternativas por tema. |
 | **Certamen** | Simulacros de 12 preguntas en 12 minutos: formato C1 (3 ejercicios × 4 preguntas), mixto (2 × 4 + 4 teóricas) y teórico. Simulacro de desarrollo (3 ejercicios × 4 resultados, 36 min). Nota 1,0–7,0 con 60% de exigencia y revisión completa. |
 | **Rush** | Feed vertical de preguntas con combos y multiplicadores (×1,5 / ×2 / ×3), preguntas doradas, cofres, jefes con tiempo y modo Sprint de 60 s. |
-| **Cartas** | 60 cartas en 5 rarezas, 4 sobres (diario gratis, básico, grande, legendario) con apertura estilo Clash Royale y pity (legendaria garantizada cada 20 sobres). Colección, venta de repetidas al juego (precio bajo) y destacar carta en el perfil. |
+| **Cartas** | 231 cartas con arte (158 decentes y 73 indecentes, varias animadas) en 5 rarezas, 4 sobres (diario gratis, básico, grande, legendario) con apertura estilo Clash Royale y pity (legendaria garantizada cada 20 sobres). Colección, venta de repetidas al juego (precio bajo) y destacar carta en el perfil. |
 | **Mercado** | Venta de repetidas a precio libre (5% de comisión), compra, cancelación e intercambios de cartas y/o monedas con custodia. |
 | **Ranking y perfil** | Ranking por XP, mejor nota, colección, racha y días seguidos. Perfil con foto, nombre visible, bio, título, color y carta destacada. Logros, misiones diarias y premio diario. |
 | **Estímulos** | Tres niveles (Zen, Normal, Dopamina máxima): sonidos sintetizados, confeti, sacudidas, textos flotantes, banners de combo, subida de nivel, vibración y "reacciones". Los espacios para GIF, imágenes y audios ya están listos (ver [`assets/README.md`](assets/README.md)). |
@@ -24,6 +24,16 @@ Es una página estática (HTML + JavaScript, sin compilación) que se publica co
 - **156 preguntas teóricas** (132 de alternativas y 24 de verdadero/falso) sacadas de las presentaciones 7 a 10.
 
 > Dos observaciones sobre el material: el formulario escribe \(P_{PCR} = s\,P_{salida}\), pero la relación correcta (y la de las láminas) es \(P_{PCR} = s\,P_{EH}\); y en la tabla de velocidades de la lámina de inducción la columna dice "pares de polos" pero los valores corresponden al número de polos. La app usa las relaciones correctas y lo explica en las lecciones.
+
+## Decentes e indecentes
+
+- Al crear la cuenta se pregunta si la persona es **decente** o **indecente**. Para elegir indecente hay que marcar que se tiene 18 años o más.
+- **Decente**: sus sobres solo traen cartas decentes, y en el mercado e intercambios solo ve y comercia cartas decentes.
+- **Indecente**: también le salen las cartas de la serie indecente (ids `h001`…) y puede comerciarlas, pero solo con otras cuentas indecentes.
+- Las miniaturas indecentes aparecen con blur. Un indecente puede quitarlo en Perfil → Ajustes. Para un decente, una carta indecente (por ejemplo, la destacada de otro jugador) siempre se ve con blur.
+- Un decente puede volverse indecente desde Perfil → Ajustes. **No se puede deshacer**: el servidor no tiene ninguna función para volver atrás.
+- El ranking y los perfiles muestran 😇 decente o 😈 indecente.
+- Todo esto lo hace cumplir el servidor (funciones `open_pack`, `create_listing`, `buy_listing`, `create_trade`, `respond_trade` y la regla RLS del mercado), no solo la página.
 
 ## Puesta en marcha
 
@@ -85,8 +95,16 @@ vendor/katex/           KaTeX 0.16.9 para las fórmulas (sin depender de CDN)
 tests/                  pruebas automáticas
 ```
 
+### Cómo actualizar las cartas
+
+1. Ordena las imágenes en `DECENTES/<Rareza>/` e `INDECENTES CULIAOS/<Rareza>/` (Comun, Rara, Epica, Legendaria, Mitica). Las reacciones van en `DECENTES/Uso general en la App/`.
+2. Ejecuta `python3 scripts/build-cards.py "<carpeta MONAS CLAUDE>"` y luego `npm run seed`. Necesita Python con Pillow.
+3. Pega `supabase/seed.sql` en el SQL Editor de Supabase.
+
+El script convierte todo a WebP: imagen completa de 520 px como máximo, animada si era GIF, más una miniatura fija de 260 px. Los ids se asignan en orden alfabético, así que conviene **agregar** archivos nuevos y no renombrar los que ya existen. Para cambiarle el nombre a una carta, usa `NAMES` en `js/data/catalog.js`.
+
 ### Cómo agregar contenido
 
 - **Pregunta teórica**: una línea en `js/content/concepts.js` → `[tema, pregunta, [correcta, trampa, trampa, trampa], explicación]`.
 - **Tipo de ejercicio**: una plantilla `tpl(...)` en `js/content/generators.js` que devuelve el enunciado y sus partes (`P(pregunta, respuesta, unidad, pasos, errores típicos)`). `npm test` revisa 200 versiones de cada una.
-- **Cartas**: nombres y series en `js/data/catalog.js`; arte en `assets/manifest.json`.
+- **Cartas**: ver "Cómo actualizar las cartas".
