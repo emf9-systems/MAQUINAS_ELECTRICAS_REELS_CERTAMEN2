@@ -2,7 +2,7 @@
 import { h, $, $$, esc, overlay, confirmBox } from '../dom.js';
 import { S, mission, save } from '../state.js';
 import { NET } from '../backend.js';
-import { PACKS, PACK, CARDS, CARD, RARITY, RARITIES, PITY_LIMIT, SELL_PRICE, cardsFor } from '../data/catalog.js';
+import { PACKS, PACK, CARDS, CARD, RARITY, RARITIES, PITY_LIMIT, SELL_PRICE, cardsFor, BOOSTS } from '../data/catalog.js';
 import { cardView } from '../components.js';
 import { SFX, confetti, shake, flash, toast, buzz, coinRain, Media, react } from '../fx.js';
 import { hud, rarityHype } from '../game.js';
@@ -48,6 +48,7 @@ function shop(body) {
       grid.append(c);
     }
     body.append(grid);
+    boosts(body, draw);
     body.append(h('<p class="small muted">¿Te faltan monedas? Responde preguntas, haz simulacros, cumple misiones y reclama el premio diario. También puedes vender repetidas al juego (precio bajo) o en el mercado (precio que tú pongas).</p>'));
   };
   const open = async (packId, useFree) => {
@@ -60,6 +61,57 @@ function shop(body) {
     draw();
   };
   draw();
+}
+
+// ---------------------------------------------------------------- boosts
+const dur = (m) => (m >= 60 ? `${m / 60} h` : `${m} min`);
+const minsLeft = (t) => Math.max(0, Math.ceil((t - Date.now()) / 60e3));
+
+function boosts(body, redraw) {
+  const u = NET.boostUntil, now = Date.now();
+  const act = [u.xp > now && `XP ×2 por ${minsLeft(u.xp)} min más`, u.coins > now && `monedas ×2 por ${minsLeft(u.coins)} min más`].filter(Boolean);
+  body.append(h(`<h3 style="margin:18px 0 4px">⚡ Boosts</h3>`));
+  body.append(h(`<p class="small muted">Duplican lo que ganas respondiendo preguntas y haciendo simulacros. Si compras otro, se suma el tiempo (máximo 3 horas acumuladas). El tope diario de 1500 monedas por estudio no cambia.${act.length ? `<br><b class="boost-on">Activo: ${act.join(' y ')}.</b>` : ''}</p>`));
+  const grid = h('<div class="packs boosts"></div>');
+  for (const b of BOOSTS) {
+    const r = b.rarity && RARITY[b.rarity];
+    const pool = r ? Object.entries(NET.cards).filter(([id, q]) => q >= 2 && CARD[id]?.rarity === b.rarity).map(([id]) => id) : [];
+    const can = r ? pool.length > 0 : NET.coins >= b.price;
+    const cost = r ? `Sacrifica 1 carta <b style="color:${r.color}">${r.name}</b> repetida` : `Cuesta 🪙 ${b.price}`;
+    const c = h(`<div class="pack-card boost-card">
+      <div class="boost-ico">${b.icon}</div>
+      <b>${esc(b.name)}</b><small>Durante ${dur(b.mins)}</small>
+      <small class="muted">${cost}</small>
+      <button class="btn ${can ? 'gold' : ''}" ${can ? '' : 'disabled'}>${r ? (can ? 'Elegir carta' : `Sin ${r.name.toLowerCase()}s repetidas`) : `🪙 ${b.price}`}</button>
+    </div>`);
+    $('.btn', c).onclick = async () => {
+      let card = null;
+      if (r) { card = await pickCard(pool, b); if (!card) return; }
+      const ok = await confirmBox(`${b.name} por ${dur(b.mins)}`, r ? `Se destruye 1 copia de "${CARD[card].name}". No se puede recuperar.` : `Se descuentan ${b.price} monedas.`, 'Activar boost');
+      if (!ok) return;
+      try { await NET.buyBoost(b.id, card); }
+      catch (e) { toast('No se pudo activar', e.message, '!', 'bad'); return; }
+      SFX.fanfare(); confetti(innerWidth / 2, innerHeight / 3, 70); react('hype');
+      toast('Boost activado', `${b.name} durante ${dur(b.mins)}`, b.icon, 'gold');
+      hud(true); redraw();
+    };
+    grid.append(c);
+  }
+  body.append(grid);
+}
+
+// Elige qué carta repetida sacrificar (muestra solo las de la rareza pedida).
+function pickCard(pool, b) {
+  return new Promise((res) => {
+    const box = h(`<div class="box"><h3>¿Qué carta sacrificas?</h3><p class="muted small">Solo aparecen tus ${RARITY[b.rarity].name.toLowerCase()}s repetidas: siempre te queda al menos una copia.</p><div class="col-grid"></div><div class="row end"><button class="btn ghost">Cancelar</button></div></div>`);
+    const ov = overlay(box);
+    for (const id of pool) {
+      const v = cardView(id, { small: true, qty: NET.cards[id] });
+      v.onclick = () => { ov.remove(); res(id); };
+      $('.col-grid', box).append(v);
+    }
+    $('.btn.ghost', box).onclick = () => { ov.remove(); res(null); };
+  });
 }
 
 // Animación de apertura: tocar el sobre → explota → revelar carta por carta → resumen.

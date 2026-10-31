@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rollPack } from '../js/economy.js';
-import { PACKS, CARDS, CARD, RARITY, PITY_LIMIT } from '../js/data/catalog.js';
+import { rollPack, addBoost, boostMult } from '../js/economy.js';
+import { PACKS, CARDS, CARD, RARITY, PITY_LIMIT, BOOSTS } from '../js/data/catalog.js';
 import { rng, gradeCL, levelFor, parseNum, close } from '../js/util.js';
 import { readFileSync } from 'node:fs';
 
@@ -43,6 +43,20 @@ test('catálogo y seed.sql están sincronizados', () => {
   const sql = readFileSync(new URL('../supabase/seed.sql', import.meta.url), 'utf8');
   for (const c of CARDS) assert.ok(sql.includes(`('${c.id}', '${c.rarity}', true, ${!!c.spicy})`), c.id);
   for (const p of PACKS) assert.ok(sql.includes(`('${p.id}', ${p.price}, ${p.n},`), p.id);
+});
+
+test('boosts: duran lo prometido, se acumulan hasta 3 h e igualan al servidor', () => {
+  const now = 1e12, min = 60e3;
+  let u = addBoost({}, 'xp30', now);
+  assert.equal(u.xp, now + 30 * min); assert.equal(u.coins, undefined);
+  assert.equal(boostMult(u.xp, now), 2); assert.equal(boostMult(u.xp, now + 31 * min), 1);
+  for (let i = 0; i < 5; i++) u = addBoost(u, 'xp30', now);
+  assert.equal(u.xp, now + 180 * min);
+  assert.throws(() => addBoost(u, 'xp30', now));
+  const d = addBoost({}, 'duo120', now);
+  assert.ok(d.xp === d.coins && d.xp === now + 120 * min);
+  const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+  for (const b of BOOSTS) assert.ok(sql.includes(`('${b.id}', ${b.mins}, ${b.price}, ${b.rarity ? `'${b.rarity}'` : 'null'}, ${b.xp}, ${b.coins})`), b.id);
 });
 
 test('nota chilena y niveles (iguales al SQL)', () => {

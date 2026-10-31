@@ -42,12 +42,27 @@ function drawHud(bump = false) {
   st.textContent = NET.mode === 'online' ? '' : NET.mode === 'guest' ? 'invitado' : NET.mode === 'local' ? 'local' : '…';
   st.hidden = NET.mode === 'online';
   document.body.dataset.fx = S.settings.fx;
+  drawBoost();
+}
+
+// Chip del boost activo en la barra superior, con los minutos que le quedan.
+export function drawBoost() {
+  const el = $('#hud .h-boost'), u = NET.boostUntil, now = Date.now();
+  const left = (t) => { const m = Math.ceil((t - now) / 60e3); return m >= 60 ? `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}` : `${m}m`; };
+  const parts = [];
+  if (u.xp > now) parts.push(`⚡${left(u.xp)}`);
+  if (u.coins > now) parts.push(`🪙${left(u.coins)}`);
+  el.hidden = !parts.length;
+  el.textContent = '×2 ' + parts.join(' ');
+  el.title = 'Boost activo: ' + [u.xp > now && 'XP ×2', u.coins > now && 'monedas ×2'].filter(Boolean).join(' y ');
 }
 setHud(drawHud);
 
 async function boot() {
   $('#hud .h-av').onclick = () => go('profile');
   $('#hud .h-coins').onclick = () => go('cards');
+  $('#hud .h-boost').onclick = () => go('cards', { tab: 'shop' });
+  setInterval(drawBoost, 20e3);
   document.addEventListener('pointerdown', () => SFX.unlock(), { once: true });
   await Promise.all([Media.load(), NET.init()]);
   NET.onChange(() => { drawHud(true); });

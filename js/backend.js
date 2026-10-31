@@ -3,8 +3,8 @@
 // - Con Supabase pero sin sesión: modo "guest" (igual que local, puede crear cuenta).
 // - Con sesión: modo "online". Monedas y cartas viven en el servidor; aquí solo hay una copia.
 import { S, load, replace, save, GUEST_KEY, onSave } from './state.js';
-import { PACK, CARD, MARKET_MAX } from './data/catalog.js';
-import { rollPack, DAILY_BONUS, STUDY, LEVEL_UP_COINS, EXAM_COINS, MISSIONS_PER_DAY, SELL_PRICE } from './economy.js';
+import { PACK, CARD, MARKET_MAX, BOOST } from './data/catalog.js';
+import { rollPack, DAILY_BONUS, STUDY, LEVEL_UP_COINS, EXAM_COINS, MISSIONS_PER_DAY, SELL_PRICE, addBoost, boostMult } from './economy.js';
 import { gradeCL, levelFor, todayCL } from './util.js';
 
 const CFG = window.CERT_CONFIG || {};
@@ -110,6 +110,32 @@ export const NET = {
     S.indecente = true; S.decided = true; save(true); emit();
   },
 
+  // Boosts de la tienda: hora de vencimiento (ms) y multiplicador actual de XP y monedas.
+  get boostUntil() {
+    if (!this.online) return { xp: S.boostXp || 0, coins: S.boostCoins || 0 };
+    const t = (v) => (v ? Date.parse(v) : 0);
+    return { xp: t(this.profile?.boost_xp_until), coins: t(this.profile?.boost_coins_until) };
+  },
+  get mult() { const u = this.boostUntil; return { xp: boostMult(u.xp), coins: boostMult(u.coins) }; },
+  async buyBoost(id, card = null) {
+    const b = BOOST[id];
+    if (this.online) {
+      await this.flush();   // lo ya respondido se paga con el multiplicador de antes
+      this.profile = await this.rpc('buy_boost', { p_item: id, p_card: card });
+      await this.refresh(); return;
+    }
+    const until = addBoost(this.boostUntil, id);
+    if (b.rarity) {
+      if (CARD[card]?.rarity !== b.rarity) throw new Error('Ese boost pide una carta ' + b.rarity + '.');
+      if ((S.cards[card] || 0) < 2) throw new Error('Solo puedes sacrificar repetidas (siempre te queda 1).');
+      S.cards[card]--;
+    } else {
+      if (S.coins < b.price) throw new Error('Monedas insuficientes.');
+      S.coins -= b.price;
+    }
+    S.boostXp = until.xp || 0; S.boostCoins = until.coins || 0; save(true); emit();
+  },
+
   addLocalCoins(n) { S.coins += n; save(); },
   localLevelBonus(oldXp) { const up = levelFor(S.xp) - levelFor(oldXp); if (up > 0 && !this.online) S.coins += LEVEL_UP_COINS * up; return up; },
 
@@ -154,7 +180,7 @@ export const NET = {
   // Recompensas de estudio: se juntan y se envían en lotes al servidor.
   pending: {},
   reward(kind, ok, bestStreak = 0) {
-    const st = STUDY[kind];
+    const m = this.mult, st = { xp: STUDY[kind].xp * m.xp, coins: STUDY[kind].coins * m.coins };
     const oldXp = S.xp;
     S.xp += ok ? st.xp : 2; S.answered++; if (ok) S.correct++;
     let coins = ok ? st.coins : 0;
@@ -192,11 +218,12 @@ export const NET = {
       return r;
     }
     const last = S.exams.slice(1).find(e => e.coins > 0);
-    const coins = seconds >= total * 8 && (!last || Date.now() - last.at > 180e3) ? EXAM_COINS(grade) : 0;
+    const m = this.mult;
+    const coins = seconds >= total * 8 && (!last || Date.now() - last.at > 180e3) ? EXAM_COINS(grade) * m.coins : 0;
     S.exams[0].coins = coins;
-    const oldXp = S.xp; S.xp += correct * 15; S.coins += coins; this.localLevelBonus(oldXp);
+    const oldXp = S.xp; S.xp += correct * 15 * m.xp; S.coins += coins; this.localLevelBonus(oldXp);
     save(true); emit();
-    return { grade, coins, xp: correct * 15 };
+    return { grade, coins, xp: correct * 15 * m.xp };
   },
 
   // ---------------------------------------------------------------- perfil
