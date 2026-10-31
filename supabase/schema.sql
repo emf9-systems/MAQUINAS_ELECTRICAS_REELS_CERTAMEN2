@@ -256,15 +256,21 @@ begin
   return v;
 end $$;
 
--- Quita p_qty copias dejando al menos p_keep (1 = solo se comercian las repetidas).
+-- Quita p_qty copias dejando al menos p_keep (1 = solo repetidas, como en la venta al juego;
+-- 0 = también la última copia, como en mercado, intercambios y boosts).
 create or replace function public._take_card(p_user uuid, p_card text, p_qty integer, p_keep integer default 1)
 returns void language plpgsql security definer set search_path = public as $$
 begin
   update user_cards set qty = qty - p_qty
    where user_id = p_user and card_id = p_card and qty - p_qty >= p_keep;
   if not found then
-    raise exception 'No tienes suficientes repetidas de %', p_card using errcode = 'P0001';
+    if p_keep > 0 then raise exception 'No tienes suficientes repetidas de %', p_card using errcode = 'P0001'; end if;
+    raise exception 'No tienes suficientes copias de %', p_card using errcode = 'P0001';
   end if;
+  -- Si se fue la última copia, deja de ser la carta destacada del perfil.
+  update profiles set favorite_card = null
+   where id = p_user and favorite_card = p_card
+     and not exists (select 1 from user_cards where user_id = p_user and card_id = p_card and qty > 0);
 end $$;
 
 -- Mantiene al día los contadores de colección del perfil (para el ranking).
@@ -559,7 +565,7 @@ end $$;
 
 -- ---------------------------------------------------------------------
 -- 9b. RPC: tienda de boosts (misma tabla que BOOSTS en js/data/catalog.js)
---     Se pagan con monedas o sacrificando una carta repetida de cierta rareza.
+--     Se pagan con monedas o sacrificando una carta de cierta rareza (aunque sea la única copia).
 --     Comprar otra vez alarga el tiempo, con un máximo de 3 horas acumuladas.
 --     El tope diario de estudio (3000 monedas) sigue igual, para no inflar el mercado.
 -- ---------------------------------------------------------------------
@@ -584,7 +590,7 @@ begin
   if need is not null then
     select rarity into rar from cards where id = p_card;
     if rar is distinct from need then raise exception 'Ese boost pide una carta %', need using errcode = 'P0001'; end if;
-    perform _take_card(u, p_card, 1, 1);
+    perform _take_card(u, p_card, 1, 0);
     insert into coin_ledger (user_id, delta, reason, ref) values (u, 0, 'boost:' || p_item, p_card);
   else
     perform _coins(u, -price, 'boost', p_item);
@@ -615,7 +621,7 @@ begin
   if (select count(*) from market_listings where seller = u and status = 'open') >= 20 then
     raise exception 'Máximo 20 publicaciones abiertas' using errcode = 'P0001';
   end if;
-  perform _take_card(u, p_card, 1, 1);
+  perform _take_card(u, p_card, 1, 0);
   insert into market_listings (seller, card_id, price) values (u, p_card, p_price) returning id into lid;
   return lid;
 end $$;
@@ -689,9 +695,9 @@ begin
   for e in select * from jsonb_array_elements(p_offer || p_request) loop
     perform _check_spicy(u, e ->> 'card'); perform _check_spicy(p_to, e ->> 'card');
   end loop;
-  -- Custodia de lo ofrecido (cartas repetidas y monedas).
+  -- Custodia de lo ofrecido (cartas, aunque sean la única copia, y monedas).
   for e in select * from jsonb_array_elements(p_offer) loop
-    perform _take_card(u, e ->> 'card', (e ->> 'qty')::integer, 1);
+    perform _take_card(u, e ->> 'card', (e ->> 'qty')::integer, 0);
   end loop;
   insert into trades (from_user, to_user, offer_cards, request_cards, offer_coins, request_coins, message)
   values (u, p_to, p_offer, p_request, p_offer_coins, p_request_coins, nullif(trim(p_message), ''))
@@ -727,9 +733,9 @@ begin
   for e in select * from jsonb_array_elements(t.offer_cards || t.request_cards) loop
     perform _check_spicy(u, e ->> 'card');
   end loop;
-  -- Lo que pide el otro sale de tus repetidas (siempre te queda 1 copia).
+  -- Lo que pide el otro sale de tu inventario (puede ser tu única copia).
   for e in select * from jsonb_array_elements(t.request_cards) loop
-    perform _take_card(u, e ->> 'card', (e ->> 'qty')::integer, 1);
+    perform _take_card(u, e ->> 'card', (e ->> 'qty')::integer, 0);
     perform _give_card(t.from_user, e ->> 'card', (e ->> 'qty')::integer);
   end loop;
   for e in select * from jsonb_array_elements(t.offer_cards) loop

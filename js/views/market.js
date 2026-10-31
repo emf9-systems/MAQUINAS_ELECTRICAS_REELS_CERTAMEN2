@@ -24,7 +24,7 @@ export function renderMarket(body) {
     try { [list, mine] = await Promise.all([NET.listings({ rarity }), NET.listings({ mine: true })]); }
     catch (e) { body.innerHTML = ''; body.append(h(`<div class="card bad">No se pudo cargar el mercado: ${esc(e.message)}</div>`)); return; }
     body.innerHTML = '';
-    body.append(h(`<div class="card row"><div class="grow"><b>🪙 ${NET.coins}</b> · <small class="muted">Comisión por venta: ${MARKET_FEE * 100}% (se descuenta al vendedor)</small></div><button class="btn primary sell">Vender una repetida</button></div>`));
+    body.append(h(`<div class="card row"><div class="grow"><b>🪙 ${NET.coins}</b> · <small class="muted">Comisión por venta: ${MARKET_FEE * 100}% (se descuenta al vendedor)</small></div><button class="btn primary sell">Vender una carta</button></div>`));
     $('.sell', body).onclick = () => pickDuplicate((id) => sellDialog(id, draw));
     const chips = h(`<div class="chips"><button class="chip" data-r="">Todas</button>${RARITIES.map(r => `<button class="chip" data-r="${r.id}" style="--rc:${r.color}">${r.name}</button>`).join('')}</div>`);
     $$('.chip', chips).forEach(b => { b.classList.toggle('active', b.dataset.r === rarity); b.onclick = () => { rarity = b.dataset.r; draw(); }; });
@@ -60,10 +60,10 @@ export function renderMarket(body) {
   return { leave: () => unsub() };
 }
 
-function pickDuplicate(cb, title = 'Elige una repetida') {
-  const dups = CARDS.filter(c => (NET.cards[c.id] || 0) > 1);
+function pickDuplicate(cb, title = 'Elige una carta') {
+  const dups = CARDS.filter(c => (NET.cards[c.id] || 0) > 0 && (NET.indecente || !c.spicy));
   const box = h(`<div class="box"><h3>${esc(title)}</h3><div class="col-grid pick"></div></div>`);
-  if (!dups.length) $('.pick', box).append(h('<p class="muted">No tienes cartas repetidas. ¡Abre sobres!</p>'));
+  if (!dups.length) $('.pick', box).append(h('<p class="muted">No tienes cartas. ¡Abre sobres!</p>'));
   const ov = overlay(box);
   for (const c of dups) { const v = cardView(c.id, { small: true, qty: NET.cards[c.id] }); v.onclick = () => { ov.remove(); cb(c.id); }; $('.pick', box).append(v); }
 }
@@ -95,7 +95,7 @@ export function renderTrades(body, p = {}) {
     body.innerHTML = '<p class="muted">Cargando…</p>';
     let list; try { list = await NET.trades(); } catch (e) { body.innerHTML = ''; body.append(h(`<div class="card bad">${esc(e.message)}</div>`)); return; }
     body.innerHTML = '';
-    body.append(h(`<div class="card row"><div class="grow small muted">Ofrece tus repetidas y/o monedas a otro jugador a cambio de sus repetidas. Lo que ofreces queda en custodia hasta que acepten, rechacen o canceles.</div><button class="btn primary new">Nueva oferta</button></div>`));
+    body.append(h(`<div class="card row"><div class="grow small muted">Ofrece tus cartas y/o monedas a otro jugador a cambio de las suyas. Lo que ofreces queda en custodia hasta que acepten, rechacen o canceles.</div><button class="btn primary new">Nueva oferta</button></div>`));
     $('.new', body).onclick = () => tradeDialog(null, draw);
     const me = NET.user.id;
     const sec = (title, items, mk) => { body.append(h(`<h3>${title}</h3>`)); if (!items.length) body.append(h('<p class="small muted">Nada por aquí.</p>')); items.forEach(t => body.append(mk(t))); };
@@ -134,7 +134,7 @@ export function renderTrades(body, p = {}) {
   return { leave: () => unsub() };
 }
 
-// Crear oferta: buscar jugador → elegir lo que pides de sus repetidas y lo que ofreces de las tuyas.
+// Crear oferta: buscar jugador → elegir lo que pides de sus cartas y lo que ofreces de las tuyas.
 export async function tradeDialog(toUsername = null, onDone = () => { }) {
   const box = h(`<form class="box trade-dialog"><h3>Nueva oferta de intercambio</h3>
     <div class="row"><input class="input grow uname" placeholder="Usuario del otro jugador" required><button type="button" class="btn find">Buscar</button></div>
@@ -150,21 +150,21 @@ export async function tradeDialog(toUsername = null, onDone = () => { }) {
     const { cards } = await NET.publicProfile(u.id);
     // Cartas indecentes solo si ambos son indecentes.
     const both = cardsFor(NET.indecente && u.indecente);
-    const theirs = both.filter(c => (cards[c.id] || 0) > 1), mine = both.filter(c => (NET.cards[c.id] || 0) > 1);
+    const theirs = both.filter(c => (cards[c.id] || 0) > 0), mine = both.filter(c => (NET.cards[c.id] || 0) > 0);
     const pickGrid = (list, src, sel) => {
       const g = h('<div class="col-grid pick"></div>');
-      if (!list.length) g.append(h('<p class="small muted">Sin repetidas.</p>'));
+      if (!list.length) g.append(h('<p class="small muted">Sin cartas.</p>'));
       for (const c of list) {
         const v = cardView(c.id, { small: true, qty: src[c.id] });
-        v.onclick = () => { const max = src[c.id] - 1; sel[c.id] = ((sel[c.id] || 0) + 1) % (max + 1); v.dataset.sel = sel[c.id] || ''; v.classList.toggle('selected', !!sel[c.id]); };
+        v.onclick = () => { const max = src[c.id]; sel[c.id] = ((sel[c.id] || 0) + 1) % (max + 1); v.dataset.sel = sel[c.id] || ''; v.classList.toggle('selected', !!sel[c.id]); };
         g.append(v);
       }
       return g;
     };
     tg.append(h(`<p class="who-line"></p>`)); $('.who-line', tg).append(who(u));
-    tg.append(h('<p class="small"><b>Pides</b> (repetidas de él/ella; toca varias veces para pedir más copias):</p>'));
+    tg.append(h('<p class="small"><b>Pides</b> (cartas de él/ella; toca varias veces para pedir más copias):</p>'));
     tg.append(pickGrid(theirs, cards, request));
-    tg.append(h('<p class="small"><b>Ofreces</b> (tus repetidas):</p>'));
+    tg.append(h('<p class="small"><b>Ofreces</b> (tus cartas; si das la última copia, dejas de tenerla):</p>'));
     tg.append(pickGrid(mine, NET.cards, offer));
     tg.append(h(`<div class="row"><label class="lbl grow">Ofreces monedas<input class="input oc" type="number" min="0" max="${Math.min(NET.coins, 100000)}" value="0"></label><label class="lbl grow">Pides monedas<input class="input rc" type="number" min="0" max="100000" value="0"></label></div>
       <input class="input msg" maxlength="140" placeholder="Mensaje (opcional)">

@@ -55,7 +55,7 @@ const Q = [
   ['trif', 'En la placa de un motor 220/380 V, la tensión mayor (380 V) corresponde a…', ['Conexión estrella', 'Conexión triángulo', 'Arranque directo', 'El rotor'], 'Lámina "Lecturas de placa": la tensión más grande corresponde a ESTRELLA.'],
   ['trif', 'Un motor 220/380 V se conecta a una red de 380 V de línea. ¿Cómo debe conectarse?', ['En estrella', 'En triángulo', 'Es indistinto', 'No se puede conectar'], 'Así cada bobina recibe 380/√3 = 220 V, que es su tensión nominal.'],
   ['trif', 'La secuencia de fases (ABC o CBA) cambia…', ['El sentido de giro del campo y los ángulos de los fasores, pero no la potencia', 'La potencia activa', 'El módulo de las corrientes', 'El factor de potencia'], 'Con secuencia negativa se intercambian los ángulos ±120°, pero los módulos y las potencias son iguales.'],
-  ['trif', 'Si la impedancia de una carga tiene ángulo +35°, el factor de potencia es…', ['cos 35° inductivo', 'sen 35°', 'cos 35° capacitivo', '1'], 'Ángulo positivo de Z ⇒ la corriente se atrasa ⇒ inductivo.'],
+  ['trif', 'Para invertir el sentido de giro de un motor trifásico se…', ['Intercambian dos de las tres fases', 'Invierte la polaridad del neutro', 'Pasa de estrella a triángulo', 'Baja la frecuencia a la mitad'], 'Al cambiar dos fases se invierte la secuencia y el campo giratorio gira al revés.'],
   ['trif', '¿Qué es la potencia reactiva?', ['La que intercambian campos magnéticos/eléctricos sin convertirse en trabajo', 'La que se convierte en calor', 'La potencia útil del eje', 'La potencia de arranque'], 'Q se mide en VAR y no produce trabajo, pero carga la línea.'],
 
   // ---------------------------------------------------------------- sincrónica

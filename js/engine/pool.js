@@ -53,8 +53,11 @@ export const EXAM_FORMATS = {
   mixto: { name: 'Mixto: 2 ejercicios × 4 + 4 teóricas', minutes: 12, desc: 'Dos enunciados de cálculo y cuatro preguntas de teoría (control, arranques, otros motores).' },
   teoria: { name: 'Teórico rápido: 12 preguntas', minutes: 12, desc: 'Solo conceptos de las presentaciones. Ideal para repasar el día antes.' },
 };
-// Los tres ejercicios salen de temas distintos para cubrir CC y CA.
-const EXAM_TOPIC_SETS = [['cc', 'ind', 'flujo'], ['cc', 'trif', 'circ'], ['fund', 'flujo', 'circ'], ['cc', 'sinc', 'flujo'], ['cc', 'trif', 'ind'], ['cc', 'arr', 'flujo'], ['fund', 'cc', 'circ']];
+// Los tres ejercicios salen de temas distintos para cubrir lo que el profesor dijo que entra:
+// motores CC, motores CA, control de motores CC y control de motores CA. Trifásico (conexión
+// del motor) y sincrónica aparecen poco, porque solo pesan como apoyo en la guía y el formulario.
+const EXAM_TOPIC_SETS = [['cc', 'ind', 'flujo'], ['cc', 'ccctrl', 'circ'], ['ccctrl', 'flujo', 'arr'], ['cc', 'flujo', 'circ'],
+  ['cc', 'ind', 'circ'], ['fund', 'cc', 'flujo'], ['cc', 'trif', 'flujo'], ['ccctrl', 'ind', 'arr'], ['cc', 'sinc', 'circ']];
 
 function examExercise(topic, r) {
   const useGuide = r.chance(0.25);

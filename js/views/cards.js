@@ -49,7 +49,7 @@ function shop(body) {
     }
     body.append(grid);
     boosts(body, draw);
-    body.append(h('<p class="small muted">¿Te faltan monedas? Responde preguntas, haz simulacros, cumple misiones y reclama el premio diario. También puedes vender repetidas al juego (precio bajo) o en el mercado (precio que tú pongas).</p>'));
+    body.append(h('<p class="small muted">¿Te faltan monedas? Responde preguntas, haz simulacros, cumple misiones y reclama el premio diario. También puedes vender repetidas al juego (precio bajo) o cualquier carta en el mercado (precio que tú pongas).</p>'));
   };
   const open = async (packId, useFree) => {
     SFX.unlock();
@@ -75,19 +75,19 @@ function boosts(body, redraw) {
   const grid = h('<div class="packs boosts"></div>');
   for (const b of BOOSTS) {
     const r = b.rarity && RARITY[b.rarity];
-    const pool = r ? Object.entries(NET.cards).filter(([id, q]) => q >= 2 && CARD[id]?.rarity === b.rarity).map(([id]) => id) : [];
+    const pool = r ? Object.entries(NET.cards).filter(([id, q]) => q >= 1 && CARD[id]?.rarity === b.rarity).map(([id]) => id) : [];
     const can = r ? pool.length > 0 : NET.coins >= b.price;
-    const cost = r ? `Sacrifica 1 carta <b style="color:${r.color}">${r.name}</b> repetida` : `Cuesta 🪙 ${b.price}`;
+    const cost = r ? `Sacrifica 1 carta <b style="color:${r.color}">${r.name}</b>` : `Cuesta 🪙 ${b.price}`;
     const c = h(`<div class="pack-card boost-card">
       <div class="boost-ico">${b.icon}</div>
       <b>${esc(b.name)}</b><small>Durante ${dur(b.mins)}</small>
       <small class="muted">${cost}</small>
-      <button class="btn ${can ? 'gold' : ''}" ${can ? '' : 'disabled'}>${r ? (can ? 'Elegir carta' : `Sin ${r.name.toLowerCase()}s repetidas`) : `🪙 ${b.price}`}</button>
+      <button class="btn ${can ? 'gold' : ''}" ${can ? '' : 'disabled'}>${r ? (can ? 'Elegir carta' : `Sin cartas ${r.name.toLowerCase()}s`) : `🪙 ${b.price}`}</button>
     </div>`);
     $('.btn', c).onclick = async () => {
       let card = null;
       if (r) { card = await pickCard(pool, b); if (!card) return; }
-      const ok = await confirmBox(`${b.name} por ${dur(b.mins)}`, r ? `Se destruye 1 copia de "${CARD[card].name}". No se puede recuperar.` : `Se descuentan ${b.price} monedas.`, 'Activar boost');
+      const ok = await confirmBox(`${b.name} por ${dur(b.mins)}`, r ? `Se destruye 1 copia de "${CARD[card].name}"${NET.cards[card] === 1 ? ' (es tu única copia)' : ''}. No se puede recuperar.` : `Se descuentan ${b.price} monedas.`, 'Activar boost');
       if (!ok) return;
       try { await NET.buyBoost(b.id, card); }
       catch (e) { toast('No se pudo activar', e.message, '!', 'bad'); return; }
@@ -100,10 +100,10 @@ function boosts(body, redraw) {
   body.append(grid);
 }
 
-// Elige qué carta repetida sacrificar (muestra solo las de la rareza pedida).
+// Elige qué carta sacrificar (muestra solo las de la rareza pedida).
 function pickCard(pool, b) {
   return new Promise((res) => {
-    const box = h(`<div class="box"><h3>¿Qué carta sacrificas?</h3><p class="muted small">Solo aparecen tus ${RARITY[b.rarity].name.toLowerCase()}s repetidas: siempre te queda al menos una copia.</p><div class="col-grid"></div><div class="row end"><button class="btn ghost">Cancelar</button></div></div>`);
+    const box = h(`<div class="box"><h3>¿Qué carta sacrificas?</h3><p class="muted small">Aparecen tus cartas ${RARITY[b.rarity].name.toLowerCase()}s. Si sacrificas la última copia, dejas de tenerla en tu colección.</p><div class="col-grid"></div><div class="row end"><button class="btn ghost">Cancelar</button></div></div>`);
     const ov = overlay(box);
     for (const id of pool) {
       const v = cardView(id, { small: true, qty: NET.cards[id] });
@@ -210,7 +210,7 @@ export function detail(id, onChange = () => { }) {
   const c = CARD[id], r = RARITY[c.rarity], q = NET.cards[id] || 0, price = SELL_PRICE(id);
   const box = h(`<div class="box card-detail"><div class="dv"></div>
     <p><b>${esc(c.name)}</b> · ${esc(c.set)} · <span style="color:${r.color}">${r.name}</span></p>
-    <p class="small muted">Tienes ×${q}. ${q > 1 ? `Repetidas: ${q - 1}.` : 'Solo se pueden vender o intercambiar las repetidas.'} El juego paga ${price} 🪙 por cada repetida.</p>
+    <p class="small muted">Tienes ×${q}. ${q > 1 ? `Repetidas: ${q - 1}.` : ''} El juego compra solo repetidas, a ${price} 🪙 cada una. En el mercado, en intercambios y en boosts puedes usar cualquier copia.</p>
     <div class="col-actions"></div></div>`);
   $('.dv', box).append(cardView(id, { qty: q, locked: !q }));
   const act = $('.col-actions', box);
@@ -218,6 +218,6 @@ export function detail(id, onChange = () => { }) {
   const btn = (txt, cls, fn, dis = false) => { const b = h(`<button class="btn ${cls}" ${dis ? 'disabled' : ''}></button>`); b.textContent = txt; b.onclick = fn; act.append(b); };
   btn(`Vender 1 al juego (+${price} 🪙)`, '', async () => { try { await NET.sellToSystem(id, 1); SFX.coin(); toast(`+${price} monedas`, c.name, '🪙'); hud(true); ov.remove(); onChange(); } catch (e) { toast('No se pudo', e.message, '!', 'bad'); } }, q < 2);
   btn(`Vender todas las repetidas (+${price * Math.max(0, q - 1)} 🪙)`, '', async () => { try { await NET.sellToSystem(id, q - 1); SFX.coin(); toast(`+${price * (q - 1)} monedas`, c.name, '🪙'); hud(true); ov.remove(); onChange(); } catch (e) { toast('No se pudo', e.message, '!', 'bad'); } }, q < 3);
-  btn('Publicar en el mercado', 'primary', () => { ov.remove(); market.sellDialog(id, onChange); }, q < 2);
+  btn('Publicar en el mercado', 'primary', () => { ov.remove(); market.sellDialog(id, onChange); }, q < 1);
   btn(NET.favorite === id ? '★ Destacada en tu perfil' : '☆ Destacar en mi perfil', 'gold', async () => { try { await NET.updateProfile({ favorite: id }); toast('Carta destacada', c.name, '★'); ov.remove(); } catch (e) { toast('No se pudo', e.message, '!', 'bad'); } }, !q);
 }

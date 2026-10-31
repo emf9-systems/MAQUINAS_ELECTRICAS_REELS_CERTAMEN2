@@ -127,8 +127,8 @@ export const NET = {
     const until = addBoost(this.boostUntil, id);
     if (b.rarity) {
       if (CARD[card]?.rarity !== b.rarity) throw new Error('Ese boost pide una carta ' + b.rarity + '.');
-      if ((S.cards[card] || 0) < 2) throw new Error('Solo puedes sacrificar repetidas (siempre te queda 1).');
-      S.cards[card]--;
+      if ((S.cards[card] || 0) < 1) throw new Error('No tienes esa carta.');
+      S.cards[card]--; if (!S.cards[card]) { delete S.cards[card]; if (S.favorite === card) S.favorite = null; }
     } else {
       if (S.coins < b.price) throw new Error('Monedas insuficientes.');
       S.coins -= b.price;

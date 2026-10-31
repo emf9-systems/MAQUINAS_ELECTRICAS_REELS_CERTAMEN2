@@ -249,27 +249,6 @@ tpl('trif_motor', 'trif', 'Corrientes y potencias de un motor trifásico', 2, (r
   };
 });
 
-tpl('trif_carga', 'trif', 'Carga trifásica equilibrada (fasores)', 2, (r) => {
-  const Z = r.pick([8, 10, 12, 13, 15, 20, 24, 30]);
-  const th = r.pick([20, 25, 30, 35, 36.87, 40, 45, 53.13, 60]);
-  const VL = r.pick([208, 220, 240, 380, 400]);
-  const conn = r.pick(['estrella', 'triángulo']);
-  const Vf = conn === 'estrella' ? VL / SQ3 : VL;
-  const If = Vf / Z, IL = conn === 'estrella' ? If : If * SQ3;
-  const fp = Math.cos(th * PI / 180), Pt = 3 * Vf * If * fp, Q = 3 * Vf * If * Math.sin(th * PI / 180), S = 3 * Vf * If;
-  return {
-    text: `Una carga trifásica equilibrada de \\(Z = ${T(Z)}\\angle ${T(th)}^\\circ\\,[Ω]\\) por fase se conecta en ${conn} a un sistema de ${VL} [V] de línea (RMS).`,
-    parts: [
-      P('Corriente de fase', If, 'A', [conn === 'estrella' ? `\\(V_f = \\dfrac{${VL}}{\\sqrt3} = ${T(Vf)}\\,[V]\\)` : `En triángulo \\(V_f = V_L = ${VL}\\,[V]\\)`, `\\(I_f = \\dfrac{V_f}{|Z|} = \\dfrac{${T(Vf)}}{${T(Z)}} = ${T(If)}\\,[A]\\)`], [VL / Z, If * SQ3, If / SQ3]),
-      P('Corriente de línea', IL, 'A', [conn === 'estrella' ? `En estrella \\(I_L = I_f = ${T(IL)}\\,[A]\\)` : `En triángulo \\(I_L = \\sqrt3\\,I_f = ${T(IL)}\\,[A]\\)`], [conn === 'estrella' ? IL * SQ3 : If, IL * 3, VL / Z * 3]),
-      P('Factor de potencia', fp, '', [`\\(FP = \\cos(${T(th)}^\\circ) = ${T(fp)}\\) (inductivo, porque el ángulo de Z es positivo)`], [Math.sin(th * PI / 180), Math.abs(Math.cos(th)), 1 - fp]),
-      P('Potencia activa total', Pt, 'W', [`\\(P = 3V_f I_f\\cos\\theta = 3\\cdot ${T(Vf)}\\cdot ${T(If)}\\cdot ${T(fp)} = ${T(Pt)}\\,[W]\\)`], [S, Q, Pt / 3]),
-      P('Potencia reactiva total', Q, 'VAR', [`\\(Q = 3V_f I_f\\sin\\theta = ${T(Q)}\\,[VAR]\\)`], [Pt, S - Pt, Q / 3]),
-      P('Potencia aparente total', S, 'VA', [`\\(S = 3V_f I_f = 3\\cdot ${T(Vf)}\\cdot ${T(If)} = ${T(S)}\\,[VA]\\)`], [Pt + Q, S / SQ3, VL * IL]),
-    ],
-  };
-});
-
 tpl('trif_placa', 'trif', 'Placa 220/380 V: estrella o triángulo', 1, (r) => {
   const Pu = r.int(4, 60) * 500, fp = r.pick([0.8, 0.82, 0.85, 0.87, 0.9]), eta = r.pick([0.85, 0.88, 0.9, 0.92]);
   const Pin = Pu / eta, ID = Pin / (SQ3 * 220 * fp), IY = Pin / (SQ3 * 380 * fp);
