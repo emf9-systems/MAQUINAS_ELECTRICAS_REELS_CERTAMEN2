@@ -136,7 +136,7 @@ export function cardView(id, { qty = null, small = false, locked = false, flip =
         <div class="meta"><b class="cname">${esc(locked ? '???' : c.name)}</b><small>${esc(c.set)} · ${r.name}</small></div>
         ${qty !== null && qty > 0 ? `<span class="qty">×${qty}</span>` : ''}
         ${isNew ? '<span class="new">¡NUEVA!</span>' : ''}
-        ${c.spicy ? '<span class="spicy-tag" title="Carta indecente">🔞</span>' : ''}
+        ${c.spicy ? '<span class="spicy-tag" title="Carta indecente">+18</span>' : ''}
       </div>
       <div class="back"><span>⚡</span></div>
     </div>
@@ -166,20 +166,25 @@ export async function squareImage(file, size = 256) {
 
 // ---------------------------------------------------------------- decente / indecente
 // Pregunta antes de crear la cuenta (o desde Ajustes). Devuelve true (indecente), false (decente) o null (cerró).
-// upgrade=true: la cuenta ya es decente y se está pasando al lado indecente.
+// upgrade=true: la cuenta ya es decente y está activando el contenido indecente.
+// Tono seco, tipo aviso de seguridad: sin emojis ni bromas.
 export function decencyDialog({ upgrade = false } = {}) {
   return new Promise((resolve) => {
     const box = h(`<div class="box decency">
-      <h2>${upgrade ? '😈 ¿Pasarte al lado indecente?' : 'Antes de empezar: ¿decente o indecente?'}</h2>
-      <p>Las cartas vienen en dos series. Las <b>decentes</b> son para todos. Las <b>indecentes</b> son monas <b>sugerentes</b> (ropa reveladora, poses provocativas).</p>
+      <div class="hazard"></div>
+      <p class="dec-kicker">Advertencia de contenido</p>
+      <h2>${upgrade ? 'Activar contenido indecente' : 'Selecciona el tipo de cuenta'}</h2>
+      <p>La colección tiene dos series. La serie <b>decente</b> es apta para todo público. La serie <b>indecente</b> contiene ilustraciones <b>sugerentes</b>: ropa reveladora y poses provocativas.</p>
       <div class="dec-opts">
-        ${upgrade ? '' : `<button class="dec-opt dec-good" type="button"><span>😇</span><b>Soy decente</b><small>Sobres, mercado e intercambios solo con cartas decentes. Puedes cambiar después en tu perfil.</small></button>`}
-        <div class="dec-opt dec-bad"><span>😈</span><b>Soy indecente</b><small>También te salen cartas indecentes en los sobres y puedes comerciarlas. Sus miniaturas tienen blur (lo puedes quitar en Ajustes).</small>
-          <label class="check"><input type="checkbox" class="age"> Tengo 18 años o más y quiero ver este contenido.</label>
-          <p class="small warn">⚠️ Esta elección <b>no se puede deshacer</b>, y el ranking muestra quién es indecente.</p>
-          <button class="btn bad-btn go-bad" type="button" disabled>Sí, soy indecente</button></div>
+        ${upgrade ? '' : `<button class="dec-opt dec-good" type="button"><b>CUENTA DECENTE</b><small>Sobres, mercado e intercambios solo con la serie decente. Se puede cambiar después desde el perfil.</small></button>`}
+        <div class="dec-opt dec-bad"><b>CUENTA INDECENTE</b>
+          <ul class="dec-list"><li>Los sobres incluyen la serie indecente.</li><li>Se puede comerciar con ella, solo entre cuentas indecentes.</li><li>Las miniaturas se muestran con blur hasta que lo desactives.</li><li>El ranking muestra el tipo de cuenta.</li></ul>
+          <p class="dec-warn">ESTA ACCIÓN ES IRREVERSIBLE. Una cuenta indecente no puede volver a ser decente.</p>
+          <label class="check"><input type="checkbox" class="age"> Declaro tener 18 años o más y acepto ver este contenido.</label>
+          <button class="btn bad-btn go-bad" type="button" disabled>Confirmar cuenta indecente</button></div>
       </div>
-      <div class="row end"><button class="btn ghost sm cancel" type="button">${upgrade ? 'Mejor no' : 'Volver'}</button></div></div>`);
+      <div class="row end"><button class="btn ghost sm cancel" type="button">Cancelar</button></div>
+      <div class="hazard"></div></div>`);
     const ov = overlay(box, { dismiss: false });
     const done = (v) => { ov.remove(); resolve(v); };
     const age = $('.age', box), go = $('.go-bad', box);
@@ -191,4 +196,4 @@ export function decencyDialog({ upgrade = false } = {}) {
 }
 
 // Etiqueta para el ranking y los perfiles.
-export const decencyBadge = (ind) => ind ? '<span class="dbadge ind" title="Indecente">😈 indecente</span>' : '<span class="dbadge dec" title="Decente">😇 decente</span>';
+export const decencyBadge = (ind) => ind ? '<span class="dbadge ind" title="Cuenta indecente">INDECENTE</span>' : '<span class="dbadge dec" title="Cuenta decente">DECENTE</span>';
