@@ -83,7 +83,10 @@ select pg_temp.ok((select qty = 2 from user_cards where user_id = auth.uid() and
 select pg_temp.fails($$select create_listing('c001', 1)$$, 'precio menor al mínimo');
 select create_listing('c001', 200) as lid \gset
 select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'la carta queda en custodia');
-select pg_temp.fails($$select create_listing('c001', 200)$$, 'no se puede publicar la última copia');
+select create_listing('c001', 300) as lid2 \gset
+select pg_temp.ok((select qty = 0 from user_cards where user_id = auth.uid() and card_id = 'c001'), 'se puede publicar la última copia');
+select pg_temp.fails($$select create_listing('c001', 200)$$, 'sin copias no se publica');
+select cancel_listing(:lid2);
 select pg_temp.fails(format('select buy_listing(%s)', :lid), 'no puedes comprarte');
 
 select set_config('test.uid', :B, false);
@@ -169,11 +172,14 @@ select buy_boost('xp30');
 select pg_temp.ok((select coins = 9850 and boost_xp_until > now() + interval '29 minutes' and boost_coins_until is null from profiles where id = auth.uid()), 'xp30 cobra 150 y dura 30 min');
 select pg_temp.ok((select (r->>'xp')::int = 200 and (r->>'coins')::int = 60 from grant_study('mcq', 10, 10) r), 'boost de XP duplica solo la XP');
 select pg_temp.fails('select buy_boost(''coins60'', ''' || :'com' || ''')', 'carta de rareza equivocada');
-select pg_temp.fails('select buy_boost(''duo120'', ''' || :'mit' || ''')', 'la última copia no se sacrifica');
 select buy_boost('coins60', :'leg');
 select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = :'leg'), 'se sacrifica 1 legendaria');
 select pg_temp.ok((select (r->>'coins')::int = 120 from grant_study('mcq', 10, 10) r), 'boost de monedas duplica');
-select pg_temp.fails('select buy_boost(''coins60'', ''' || :'leg' || ''')', 'sin repetidas no hay sacrificio');
+reset role; update profiles set favorite_card = :'leg' where username = 'beto'; set role authenticated;
+select buy_boost('coins60', :'leg');
+select pg_temp.ok((select qty = 0 from user_cards where user_id = auth.uid() and card_id = :'leg'), 'se puede sacrificar la última copia');
+select pg_temp.ok((select favorite_card is null from profiles where id = auth.uid()), 'sin la carta deja de ser la destacada');
+select pg_temp.fails('select buy_boost(''coins60'', ''' || :'leg' || ''')', 'sin copias no hay sacrificio');
 select buy_boost('xp30') from generate_series(1, 5);   -- 6 × 30 min = 3 h justas
 select pg_temp.fails($$select buy_boost('xp30')$$, 'máximo 3 horas acumuladas');
 reset role;
