@@ -18,8 +18,10 @@ ROOT = sys.argv[1]
 OUT = os.path.join(os.path.dirname(__file__), '..')
 RAR = [('Comun', 'comun'), ('Rara', 'rara'), ('Epica', 'epica'), ('Legendaria', 'legendaria'), ('Mitica', 'mitica')]
 EXT = ('.png', '.jpg', '.jpeg', '.gif', '.webp')
-# Excluidas a propósito: personajes con apariencia infantil (Koneko y Ravel de DxD) no van en la serie sugerente.
-EXCLUDE = {'3165.jpg', '3187.jpg', '3686.jpg', '3919.jpg', '4094.jpg', '3822.jpg'}
+# Koneko y Ravel (DxD) tienen apariencia infantil: no van en la serie indecente.
+# Las que no son nada sugerentes pasan a la serie decente; las que tienen ligas o tajos se dejan fuera.
+TO_DECENT = {'4017.jpg': 'Koneko', '4094.jpg': 'Koneko', '3822.jpg': 'Koneko y Ravel'}
+EXCLUDE = {'4322.jpg', '4344.jpg', '4426.jpg'} | set(TO_DECENT)
 SAD = {'12083.gif', '12084.gif', '221698.gif', '221699.gif', '221705.gif', "i-don't-know-what-to-do.gif",
        'bocchi-the-rock-bocchi (1).gif', 'bocchi-the-rock-bocchi-the-rock-meme.gif'}
 
@@ -90,6 +92,18 @@ def main():
                 cards.append({'id': cid, 'rarity': rarity, 'set': set_, 'name': name or ('Indecente' if spicy else 'Mona') + f' #{k}',
                               'spicy': spicy, 'anim': anim})
                 print(cid, rarity, set_, fn[:50])
+        if not spicy:   # al final de las decentes, para no correr los ids de las que ya existían
+            for sub, rarity in RAR:
+                d = os.path.join(ROOT, 'INDECENTES CULIAOS', sub)
+                for fn in sorted(os.listdir(d)):
+                    if fn not in TO_DECENT: continue
+                    k += 1
+                    cid = f'c{k:03d}'
+                    p = os.path.join(d, fn)
+                    anim = save(p, f'{OUT}/assets/cards/{cid}.webp', 520, 80)
+                    save(p, f'{OUT}/assets/cards/t/{cid}.webp', 260, 72, animate=False)
+                    cards.append({'id': cid, 'rarity': rarity, 'set': 'High School DxD', 'name': TO_DECENT[fn], 'spicy': False, 'anim': anim})
+                    print(cid, rarity, 'DxD decente', fn)
     # reacciones: todo lo de "Uso general" (los duplicados se buscan en las otras carpetas)
     react = {'happy': [], 'sad': [], 'hype': []}
     gen = os.path.join(ROOT, 'DECENTES', 'Uso general en la App')
