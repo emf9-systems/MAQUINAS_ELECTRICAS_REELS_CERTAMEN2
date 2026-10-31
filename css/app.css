@@ -343,3 +343,11 @@ body[data-fx="zen"] .btn.pulse, body[data-fx="zen"] .chest, body[data-fx="zen"] 
 .bad-btn { background: #ffd400; color: #111; font-weight: 800; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
 .bad-btn:disabled { opacity: .35; }
 .reaction img, .react img { max-width: 160px; border-radius: 12px; }
+
+/* ---------------------------------------------------------------- boosts */
+.h-boost { font-family: var(--f-display); font-size: 13px; padding: 4px 10px; border-radius: 99px; border: 0; color: #1a0f00;
+  background: linear-gradient(90deg, #ffd166, #3ddc97); animation: glow 1.4s infinite alternate; cursor: pointer; white-space: nowrap; }
+.boost-card .boost-ico { font-size: 34px; line-height: 1.2; }
+.boost-on { color: var(--gold); }
+body[data-fx="zen"] .h-boost { animation: none; }
+@media (max-width: 420px) { .h-boost { font-size: 11px; padding: 3px 7px; } }

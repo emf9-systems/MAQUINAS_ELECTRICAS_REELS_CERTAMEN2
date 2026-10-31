@@ -27,16 +27,16 @@ select pg_temp.fails($$select grant_study('mcq', 50, 40)$$, 'lote inválido');
 
 -- Estudiar da XP y monedas.
 select grant_study('mcq', 10, 12, 8);
-select pg_temp.ok((select coins = 330 and xp = 104 and correct_total = 10 from profiles where id = auth.uid()), 'grant_study suma');
+select pg_temp.ok((select coins = 360 and xp = 104 and correct_total = 10 from profiles where id = auth.uid()), 'grant_study suma');
 
 -- Misiones: máximo 3 por día.
 select claim_mission(40); select claim_mission(50); select claim_mission(60);
 select pg_temp.fails($$select claim_mission(40)$$, 'cuarta misión rechazada');
-select pg_temp.fails($$select claim_mission(500)$$, 'premio excesivo');
+select pg_temp.fails($$select claim_mission(200)$$, 'premio excesivo');
 reset role; update profiles set coins = 330 where username = 'ana'; set role authenticated;
 -- Subir de nivel paga monedas.
 select grant_study('dev', 1, 1);
-select pg_temp.ok((select level = 2 and coins = 330 + 8 + 50 from profiles where id = auth.uid()), 'subida de nivel paga 50');
+select pg_temp.ok((select level = 2 and coins = 330 + 16 + 100 from profiles where id = auth.uid()), 'subida de nivel paga 100');
 reset role; update profiles set coins = 330 where username = 'ana'; set role authenticated;
 
 -- Diario: una vez por día.
@@ -123,7 +123,7 @@ select pg_temp.ok((select grade_cl(12,12) = 7.0 and grade_cl(0,12) = 1.0 and gra
 select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, null, 'https://x.supabase.co/storage/v1/object/public/avatars/otro/a.webp')$$, 'foto ajena');
 select update_profile('Ana ✨', 'hola', '#123456', 'Rey del deslizamiento', 'c001',
   'https://x.supabase.co/storage/v1/object/public/avatars/aaaaaaaa-0000-0000-0000-000000000001/a.webp');
-select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, 'c060', null)$$, 'carta favorita no poseída');
+select pg_temp.fails($$select update_profile('Ana', null, '#123456', null, 'h073', null)$$, 'carta favorita no poseída');
 
 -- Decentes e indecentes
 reset role;
@@ -149,6 +149,37 @@ select pg_temp.ok((select count(*) = 1 from market_listings where id = :hl), 'al
 select buy_listing(:hl);
 select pg_temp.ok((select indecente from profiles where id = auth.uid()), 'sigue indecente');
 select pg_temp.ok((select indecente from become_indecente()), 'no hay vuelta atrás');
+
+-- Tienda de boosts
+reset role;
+update profiles set coins = 10000, boost_xp_until = null, boost_coins_until = null where username = 'beto';
+delete from user_cards where user_id = :B;
+delete from daily_stats where user_id = :B;
+insert into user_cards (user_id, card_id, qty)
+  select :B, id, 2 from cards where rarity = 'legendaria' and not spicy order by id limit 1;
+insert into user_cards (user_id, card_id, qty)
+  select :B, id, 1 from cards where rarity = 'mitica' and not spicy order by id limit 1;
+select (select id from cards where rarity = 'legendaria' and not spicy order by id limit 1) as leg,
+       (select id from cards where rarity = 'mitica' and not spicy order by id limit 1) as mit,
+       (select id from cards where rarity = 'comun' and not spicy order by id limit 1) as com \gset
+set role authenticated;
+select set_config('test.uid', :B, false);
+select pg_temp.fails($$select buy_boost('gratis')$$, 'boost desconocido');
+select buy_boost('xp30');
+select pg_temp.ok((select coins = 9850 and boost_xp_until > now() + interval '29 minutes' and boost_coins_until is null from profiles where id = auth.uid()), 'xp30 cobra 150 y dura 30 min');
+select pg_temp.ok((select (r->>'xp')::int = 200 and (r->>'coins')::int = 60 from grant_study('mcq', 10, 10) r), 'boost de XP duplica solo la XP');
+select pg_temp.fails('select buy_boost(''coins60'', ''' || :'com' || ''')', 'carta de rareza equivocada');
+select pg_temp.fails('select buy_boost(''duo120'', ''' || :'mit' || ''')', 'la última copia no se sacrifica');
+select buy_boost('coins60', :'leg');
+select pg_temp.ok((select qty = 1 from user_cards where user_id = auth.uid() and card_id = :'leg'), 'se sacrifica 1 legendaria');
+select pg_temp.ok((select (r->>'coins')::int = 120 from grant_study('mcq', 10, 10) r), 'boost de monedas duplica');
+select pg_temp.fails('select buy_boost(''coins60'', ''' || :'leg' || ''')', 'sin repetidas no hay sacrificio');
+select buy_boost('xp30') from generate_series(1, 5);   -- 6 × 30 min = 3 h justas
+select pg_temp.fails($$select buy_boost('xp30')$$, 'máximo 3 horas acumuladas');
+reset role;
+update daily_stats set coins = 2995 where user_id = :B;
+set role authenticated;
+select pg_temp.ok((select (r->>'coins')::int = 5 from grant_study('mcq', 10, 10) r), 'el tope diario se mantiene con boost');
 
 -- Lectura: otros no ven mis monedas en el libro contable.
 select set_config('test.uid', :B, false);

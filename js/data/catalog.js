@@ -46,6 +46,18 @@ export const MARKET_FEE = 0.05;      // 5% del precio se quema en cada venta ent
 export const MARKET_MAX = 100000;
 export const START_COINS = 300;
 
+// Tienda de boosts (misma tabla que buy_boost en supabase/schema.sql). Cada boost duplica
+// la XP y/o las monedas de estudio y simulacros; se paga con monedas o con una carta repetida.
+// Comprar otra vez alarga el tiempo, hasta 3 horas acumuladas. El tope diario no cambia.
+export const BOOSTS = [
+  { id: 'xp30', name: 'XP ×2', mins: 30, price: 150, rarity: null, xp: true, coins: false, icon: '⚡' },
+  { id: 'xp120', name: 'XP ×2', mins: 120, price: 0, rarity: 'legendaria', xp: true, coins: false, icon: '⚡' },
+  { id: 'coins60', name: 'Monedas ×2', mins: 60, price: 0, rarity: 'legendaria', xp: false, coins: true, icon: '🪙' },
+  { id: 'duo120', name: 'XP ×2 y monedas ×2', mins: 120, price: 0, rarity: 'mitica', xp: true, coins: true, icon: '🔥' },
+];
+export const BOOST = Object.fromEntries(BOOSTS.map(b => [b.id, b]));
+export const BOOST_MAX_MS = 3 * 3600e3;
+
 // Las cartas salen de la carpeta de monas: `python3 scripts/build-cards.py "<carpeta>"` genera
 // js/data/cards.js y las imágenes en assets/cards/ (c… = decentes, h… = indecentes).
 // Para cambiarle el nombre a una carta sin regenerar todo, agrégala aquí:

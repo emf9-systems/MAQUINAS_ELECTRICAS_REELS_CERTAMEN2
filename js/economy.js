@@ -1,15 +1,30 @@
 // Reglas de la economía en JavaScript, idénticas a las funciones de supabase/schema.sql.
 // Se usan en modo invitado (sin servidor) y en las pruebas automáticas.
-import { RARITIES, RARITY, PACK, CARDS, PITY_LIMIT, SELL_PRICE } from './data/catalog.js';
+import { RARITIES, RARITY, PACK, CARDS, PITY_LIMIT, SELL_PRICE, BOOST, BOOST_MAX_MS } from './data/catalog.js';
 
-export const DAILY_BONUS = (streak) => 50 + 10 * Math.min(streak, 10);
-export const LEVEL_UP_COINS = 50;            // por cada nivel subido
+export const DAILY_BONUS = (streak) => 100 + 20 * Math.min(streak, 10);
+export const LEVEL_UP_COINS = 100;            // por cada nivel subido
 export const MISSIONS_PER_DAY = 3;
-export const EXAM_COINS = (grade) => Math.round(grade * 20);
+export const EXAM_COINS = (grade) => Math.round(grade * 40);
 export const STUDY = {                        // por respuesta correcta (igual que grant_study)
-  mcq: { xp: 10, coins: 3 }, rush: { xp: 12, coins: 4 }, dev: { xp: 25, coins: 8 }, lesson: { xp: 15, coins: 5 },
+  mcq: { xp: 10, coins: 6 }, rush: { xp: 12, coins: 8 }, dev: { xp: 25, coins: 16 }, lesson: { xp: 15, coins: 10 },
 };
-export const DAILY_CAP = { xp: 20000, coins: 1500 };
+export const DAILY_CAP = { xp: 20000, coins: 3000 };
+
+// Compra de un boost sobre {xp, coins} (horas de vencimiento en ms). Devuelve los nuevos vencimientos
+// o lanza error si se pasaría de 3 horas acumuladas. Igual que buy_boost en el servidor.
+export function addBoost(until, id, now = Date.now()) {
+  const b = BOOST[id];
+  if (!b) throw new Error('Boost desconocido');
+  const out = { ...until };
+  for (const k of ['xp', 'coins']) {
+    if (!b[k]) continue;
+    out[k] = Math.max(until[k] || 0, now) + b.mins * 60e3;
+    if (out[k] > now + BOOST_MAX_MS) throw new Error('Ya tienes casi 3 horas de boost acumuladas. Espera a que baje.');
+  }
+  return out;
+}
+export const boostMult = (until, now = Date.now()) => (until > now ? 2 : 1);
 
 export function rollRarity(weights, minRank, rand = Math.random) {
   const pool = RARITIES.filter(r => r.rank >= minRank);

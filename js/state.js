@@ -13,6 +13,7 @@ export const DEFAULT = () => ({
   indecente: false, decided: false,   // modo indecente del invitado (las cuentas lo guardan en el servidor)
   // economía local (solo invitado)
   coins: START_COINS, cards: {}, freePacks: 1, pity: 0, lastDaily: null, dayStreak: 0,
+  boostXp: 0, boostCoins: 0,   // hora (ms) en que vence cada boost
   // progreso
   xp: 0, correct: 0, answered: 0, streak: 0, bestStreak: 0, bestGrade: 0, exams: [],
   lessons: {},            // { fund: { seen: true, quiz: 3 } }
@@ -58,14 +59,14 @@ export const titleFor = (lv) => LEVEL_TITLES[Math.min(LEVEL_TITLES.length - 1, M
 
 // ---------------------------------------------------------------- misiones diarias
 const MISSION_POOL = [
-  { k: 'answer', n: 20, t: 'Responde 20 preguntas', coins: 40 },
-  { k: 'correct', n: 15, t: 'Acierta 15 preguntas', coins: 50 },
-  { k: 'combo', n: 8, t: 'Logra un combo de 8 en Rush', coins: 60 },
-  { k: 'dev', n: 2, t: 'Resuelve 2 ejercicios de desarrollo', coins: 70 },
-  { k: 'exam', n: 1, t: 'Haz un simulacro de certamen', coins: 80 },
-  { k: 'lesson', n: 1, t: 'Completa una lección', coins: 40 },
-  { k: 'guide', n: 2, t: 'Resuelve 2 ejercicios de la guía', coins: 60 },
-  { k: 'pack', n: 1, t: 'Abre un sobre', coins: 30 },
+  { k: 'answer', n: 20, t: 'Responde 20 preguntas', coins: 80 },
+  { k: 'correct', n: 15, t: 'Acierta 15 preguntas', coins: 100 },
+  { k: 'combo', n: 8, t: 'Logra un combo de 8 en Rush', coins: 120 },
+  { k: 'dev', n: 2, t: 'Resuelve 2 ejercicios de desarrollo', coins: 140 },
+  { k: 'exam', n: 1, t: 'Haz un simulacro de certamen', coins: 160 },
+  { k: 'lesson', n: 1, t: 'Completa una lección', coins: 80 },
+  { k: 'guide', n: 2, t: 'Resuelve 2 ejercicios de la guía', coins: 120 },
+  { k: 'pack', n: 1, t: 'Abre un sobre', coins: 60 },
 ];
 export function dailyInit() {
   const d = todayCL();

@@ -70,6 +70,9 @@ create table if not exists public.profiles (
 -- Modo indecente: se elige al crear la cuenta o después en el perfil. NO se puede deshacer.
 alter table public.profiles add column if not exists indecente boolean not null default false;
 alter table public.profiles add column if not exists indecente_at timestamptz;
+-- Boosts activos de la tienda: duplican XP y/o monedas de estudio hasta esa hora.
+alter table public.profiles add column if not exists boost_xp_until timestamptz;
+alter table public.profiles add column if not exists boost_coins_until timestamptz;
 
 -- Progreso de estudio (lecciones vistas, ajustes, misiones): privado, cada uno el suyo.
 create table if not exists public.progress (
@@ -354,9 +357,13 @@ begin
   select level into old_lv from profiles where id = p_user for update;
   update profiles set xp = xp + p_xp, level = level_for(xp + p_xp), updated_at = now()
    where id = p_user returning level into new_lv;
-  if new_lv > old_lv then perform _coins(p_user, 50 * (new_lv - old_lv), 'subida-nivel', new_lv::text); end if;
+  if new_lv > old_lv then perform _coins(p_user, 100 * (new_lv - old_lv), 'subida-nivel', new_lv::text); end if;
   return new_lv;
 end $$;
+
+-- Multiplicador de un boost: x2 mientras no venza.
+create or replace function public._boost(p_until timestamptz) returns integer
+language sql stable as $$ select case when p_until > now() then 2 else 1 end $$;
 
 -- ---------------------------------------------------------------------
 -- 7. RPC: recompensas por estudiar (con topes diarios)
@@ -370,20 +377,22 @@ declare
   u uuid := me();
   d date := today_cl();
   per_xp integer; per_coin integer;
-  gx integer; gc integer; ds daily_stats; p profiles;
+  gx integer; gc integer; ds daily_stats; p profiles; mx integer; mc integer;
 begin
   if p_answered < 1 or p_answered > 30 or p_correct < 0 or p_correct > p_answered then
     raise exception 'Lote inválido' using errcode = 'P0001';
   end if;
   select case p_kind when 'mcq' then 10 when 'rush' then 12 when 'dev' then 25 when 'lesson' then 15 else 0 end,
-         case p_kind when 'mcq' then 3  when 'rush' then 4  when 'dev' then 8  when 'lesson' then 5  else 0 end
+         case p_kind when 'mcq' then 6  when 'rush' then 8  when 'dev' then 16 when 'lesson' then 10 else 0 end
     into per_xp, per_coin;
   if per_xp = 0 then raise exception 'Tipo desconocido' using errcode = 'P0001'; end if;
+  select _boost(boost_xp_until), _boost(boost_coins_until) into mx, mc from profiles where id = u;
+  per_xp := per_xp * mx; per_coin := per_coin * mc;
 
   insert into daily_stats (user_id, day) values (u, d) on conflict do nothing;
   select * into ds from daily_stats where user_id = u and day = d for update;
   gx := least(p_correct * per_xp + (p_answered - p_correct) * 2, greatest(0, 20000 - ds.xp));
-  gc := least(p_correct * per_coin, greatest(0, 1500 - ds.coins));
+  gc := least(p_correct * per_coin, greatest(0, 3000 - ds.coins));
   update daily_stats set xp = xp + gx, coins = coins + gc where user_id = u and day = d;
 
   perform _add_xp(u, gx);
@@ -408,7 +417,7 @@ $$;
 create or replace function public.submit_exam(p_mode text, p_correct integer, p_total integer, p_seconds integer)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
-  u uuid := me(); g numeric; c integer := 0; last timestamptz; xp_gain integer;
+  u uuid := me(); g numeric; c integer := 0; last timestamptz; xp_gain integer; mx integer; mc integer;
 begin
   if p_mode not in ('alternativas','desarrollo','mini') or p_total not between 4 and 40
      or p_correct not between 0 and p_total or p_seconds < 0 then
@@ -418,9 +427,11 @@ begin
   select max(created_at) into last from exam_results where user_id = u and coins > 0;
   -- Monedas solo si el intento duró algo razonable y no se repite en ráfaga.
   if p_seconds >= p_total * 8 and (last is null or last < now() - interval '3 minutes') then
-    c := round(g * 20)::integer;
+    c := round(g * 40)::integer;
   end if;
-  xp_gain := p_correct * 15;
+  select _boost(boost_xp_until), _boost(boost_coins_until) into mx, mc from profiles where id = u;
+  c := c * mc;
+  xp_gain := p_correct * 15 * mx;
   insert into exam_results (user_id, mode, correct, total, seconds, grade, coins)
   values (u, p_mode, p_correct, p_total, p_seconds, g, c);
   update profiles set
@@ -442,7 +453,7 @@ begin
     return jsonb_build_object('ok', false, 'streak', p.day_streak);
   end if;
   streak := case when p.last_daily = d - 1 then p.day_streak + 1 else 1 end;
-  bonus := 50 + 10 * least(streak, 10);
+  bonus := 100 + 20 * least(streak, 10);
   update profiles set last_daily = d, day_streak = streak, free_packs = least(free_packs + 1, 5), updated_at = now()
    where id = u;
   perform _coins(u, bonus, 'diario');
@@ -454,7 +465,7 @@ create or replace function public.claim_mission(p_coins integer)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare u uuid := me(); d date := today_cl(); ds daily_stats; v integer;
 begin
-  if p_coins not between 1 and 80 then raise exception 'Premio inválido' using errcode = 'P0001'; end if;
+  if p_coins not between 1 and 160 then raise exception 'Premio inválido' using errcode = 'P0001'; end if;
   insert into daily_stats (user_id, day) values (u, d) on conflict do nothing;
   select * into ds from daily_stats where user_id = u and day = d for update;
   if ds.missions >= 3 then raise exception 'Ya cobraste las misiones de hoy' using errcode = 'P0001'; end if;
@@ -544,6 +555,46 @@ begin
   perform _take_card(u, p_card, p_qty, 1);
   v := _coins(u, price * p_qty, 'venta-sistema', p_card);
   return jsonb_build_object('coins', v, 'earned', price * p_qty);
+end $$;
+
+-- ---------------------------------------------------------------------
+-- 9b. RPC: tienda de boosts (misma tabla que BOOSTS en js/data/catalog.js)
+--     Se pagan con monedas o sacrificando una carta repetida de cierta rareza.
+--     Comprar otra vez alarga el tiempo, con un máximo de 3 horas acumuladas.
+--     El tope diario de estudio (3000 monedas) sigue igual, para no inflar el mercado.
+-- ---------------------------------------------------------------------
+create or replace function public.buy_boost(p_item text, p_card text default null)
+returns profiles language plpgsql security definer set search_path = public as $$
+declare
+  u uuid := me(); p profiles; mins integer; price integer := 0; need text; bx boolean; bc boolean;
+  rar text; cap timestamptz := now() + interval '3 hours';
+begin
+  select b.mins, b.price, b.rarity, b.xp, b.coins into mins, price, need, bx, bc
+    from (values ('xp30', 30, 150, null, true, false),
+                 ('xp120', 120, 0, 'legendaria', true, false),
+                 ('coins60', 60, 0, 'legendaria', false, true),
+                 ('duo120', 120, 0, 'mitica', true, true)) as b(id, mins, price, rarity, xp, coins)
+   where b.id = p_item;
+  if mins is null then raise exception 'Boost desconocido' using errcode = 'P0001'; end if;
+  select * into p from profiles where id = u for update;
+  if (bx and greatest(coalesce(p.boost_xp_until, now()), now()) + make_interval(mins => mins) > cap)
+     or (bc and greatest(coalesce(p.boost_coins_until, now()), now()) + make_interval(mins => mins) > cap) then
+    raise exception 'Ya tienes casi 3 horas de boost acumuladas. Espera a que baje.' using errcode = 'P0001';
+  end if;
+  if need is not null then
+    select rarity into rar from cards where id = p_card;
+    if rar is distinct from need then raise exception 'Ese boost pide una carta %', need using errcode = 'P0001'; end if;
+    perform _take_card(u, p_card, 1, 1);
+    insert into coin_ledger (user_id, delta, reason, ref) values (u, 0, 'boost:' || p_item, p_card);
+  else
+    perform _coins(u, -price, 'boost', p_item);
+  end if;
+  update profiles set
+    boost_xp_until = case when bx then greatest(coalesce(boost_xp_until, now()), now()) + make_interval(mins => mins) else boost_xp_until end,
+    boost_coins_until = case when bc then greatest(coalesce(boost_coins_until, now()), now()) + make_interval(mins => mins) else boost_coins_until end,
+    updated_at = now()
+  where id = u returning * into p;
+  return p;
 end $$;
 
 -- ---------------------------------------------------------------------
@@ -717,6 +768,7 @@ grant execute on function public.claim_daily() to authenticated;
 grant execute on function public.claim_mission(integer) to authenticated;
 grant execute on function public.open_pack(text,boolean) to authenticated;
 grant execute on function public.sell_to_system(text,integer) to authenticated;
+grant execute on function public.buy_boost(text,text) to authenticated;
 grant execute on function public.create_listing(text,integer) to authenticated;
 grant execute on function public.cancel_listing(bigint) to authenticated;
 grant execute on function public.buy_listing(bigint) to authenticated;
