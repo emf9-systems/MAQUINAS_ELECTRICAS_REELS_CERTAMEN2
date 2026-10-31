@@ -6,7 +6,7 @@ export const TOPICS = [
   { id: 'fund', name: 'Fundamentos: potencia, rendimiento y torque', short: 'Fundamentos', icon: '⚡', order: 1 },
   { id: 'cc', name: 'Máquina de corriente continua', short: 'Motor CC', icon: '🔋', order: 2 },
   { id: 'ccctrl', name: 'Control de máquinas de CC', short: 'Control CC', icon: '🎛️', order: 3 },
-  { id: 'trif', name: 'Sistemas trifásicos (estrella y triángulo)', short: 'Trifásico', icon: '🔺', order: 4 },
+  { id: 'trif', name: 'Motor trifásico: conexión estrella/triángulo y placa', short: 'Conexión Y/Δ', icon: '🔺', order: 4 },
   { id: 'sinc', name: 'Máquina sincrónica', short: 'Sincrónica', icon: '🔄', order: 5 },
   { id: 'ind', name: 'Inducción: velocidad y deslizamiento', short: 'Deslizamiento', icon: '🌀', order: 6 },
   { id: 'flujo', name: 'Inducción: flujo de potencias', short: 'Flujo de potencias', icon: '🌊', order: 7 },
@@ -100,7 +100,8 @@ export const LESSONS = {
   },
   trif: {
     example: 'trif_motor',
-    idea: `<p>Un sistema trifásico son tres tensiones iguales desfasadas 120°. Las bobinas (o cargas) se conectan de dos formas:</p>
+    idea: `<p><i>Este tema entra solo como herramienta para los motores de CA (guía CA, ejercicios 2 y 5): leer la placa, conectar el motor y calcular sus corrientes. No es materia aparte.</i></p>
+<p>Un sistema trifásico son tres tensiones iguales desfasadas 120°. Las bobinas del motor se conectan de dos formas:</p>
 <ul><li><b>Estrella (Y)</b>: un extremo de cada bobina va a un punto común (neutro). Cada bobina recibe la tensión de fase \\(V_L/\\sqrt3\\) y la corriente de línea es la misma que la de la bobina.</li>
 <li><b>Triángulo (Δ)</b>: cada bobina va entre dos líneas. Recibe toda la tensión de línea y la corriente de línea es \\(\\sqrt3\\) veces la de la bobina.</li></ul>
 <p>En la placa de un motor dice por ejemplo <b>220/380 V</b>: la tensión mayor es para <b>estrella</b> y la menor para <b>triángulo</b>. Así la bobina siempre recibe 220 V.</p>`,
@@ -109,7 +110,6 @@ export const LESSONS = {
       ['Triángulo', '\\(V_L = V_f,\\quad I_L = \\sqrt3\\,I_f\\)'],
       ['Potencia activa', '\\(P = \\sqrt3\\,V_L I_L\\cos\\varphi = 3V_f I_f\\cos\\varphi\\)'],
       ['Reactiva y aparente', '\\(Q = \\sqrt3\\,V_L I_L\\sin\\varphi,\\quad S = \\sqrt3\\,V_L I_L\\)'],
-      ['Impedancia', '\\(I_f = \\dfrac{V_f}{|Z|},\\quad \\varphi = \\angle Z\\)'],
     ],
     method: [
       'Determina la conexión y calcula V_f (estrella: V_L/√3; triángulo: V_L).',
