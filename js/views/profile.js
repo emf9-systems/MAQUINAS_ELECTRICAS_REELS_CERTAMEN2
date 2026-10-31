@@ -92,10 +92,10 @@ export function render(root, p) {
     $('.unblur', ds).checked = S.settings.unblur; $('.unblur', ds).onchange = (e) => { S.settings.unblur = e.target.checked; save(true); };
   } else {
     ds.append(h(`<p class="small">${decencyBadge(false)} Solo ves, consigues y comercias cartas decentes.</p>`));
-    const b = h('<button class="btn sm">😈 Volverme indecente…</button>');
+    const b = h('<button class="btn sm">Activar contenido indecente…</button>');
     b.onclick = async () => {
       if (await decencyDialog({ upgrade: true }) !== true) return;
-      try { await NET.becomeIndecente(); SFX.fanfare(); toast('Ahora eres indecente', 'Ya no hay vuelta atrás 😈', '😈', 'gold'); go('profile'); }
+      try { await NET.becomeIndecente(); toast('Cuenta indecente activada', 'Este cambio es permanente.', '!'); go('profile'); }
       catch (err) { toast('No se pudo', err.message, '!', 'bad'); }
     };
     ds.append(b);
