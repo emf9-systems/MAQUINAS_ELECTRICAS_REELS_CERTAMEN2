@@ -101,6 +101,9 @@ create table if not exists public.daily_stats (
   primary key (user_id, day)
 );
 alter table public.daily_stats add column if not exists missions integer not null default 0;
+-- Ventana de 1 minuto para el límite de velocidad de grant_study (anti-scripts).
+alter table public.daily_stats add column if not exists win_start timestamptz;
+alter table public.daily_stats add column if not exists win_n integer not null default 0;
 
 create table if not exists public.exam_results (
   id bigint generated always as identity primary key,
@@ -384,7 +387,7 @@ declare
   u uuid := me();
   d date := today_cl();
   per_xp integer; per_coin integer;
-  gx integer; gc integer; ds daily_stats; p profiles; mx integer; mc integer;
+  gx integer; gc integer; ds daily_stats; p profiles; mx integer; mc integer; ok_n integer; c integer;
 begin
   if p_answered < 1 or p_answered > 30 or p_correct < 0 or p_correct > p_answered then
     raise exception 'Lote inválido' using errcode = 'P0001';
@@ -398,9 +401,17 @@ begin
 
   insert into daily_stats (user_id, day) values (u, d) on conflict do nothing;
   select * into ds from daily_stats where user_id = u and day = d for update;
-  gx := least(p_correct * per_xp + (p_answered - p_correct) * 2, greatest(0, 20000 - ds.xp));
-  gc := least(p_correct * per_coin, greatest(0, 3000 - ds.coins));
-  update daily_stats set xp = xp + gx, coins = coins + gc where user_id = u and day = d;
+  -- Monedas sin tope diario: quien estudia, gana. Solo se limita la velocidad: nadie responde
+  -- más de 60 preguntas por minuto, así que lo que pase de eso no paga (frena a los scripts).
+  if ds.win_start is null or ds.win_start < now() - interval '1 minute' then
+    ds.win_start := now(); ds.win_n := 0;
+  end if;
+  ok_n := least(p_answered, greatest(0, 60 - ds.win_n));
+  c := (p_correct * ok_n) / p_answered;
+  gx := least(c * per_xp + (ok_n - c) * 2, greatest(0, 20000 - ds.xp));
+  gc := c * per_coin;
+  update daily_stats set xp = xp + gx, coins = coins + gc, win_start = ds.win_start, win_n = ds.win_n + p_answered
+   where user_id = u and day = d;
 
   perform _add_xp(u, gx);
   update profiles set
@@ -410,7 +421,7 @@ begin
     updated_at = now()
   where id = u returning * into p;
   if gc > 0 then perform _coins(u, gc, 'estudio:' || p_kind); end if;
-  return jsonb_build_object('xp', gx, 'coins', gc, 'level', p.level, 'capped', gc < p_correct * per_coin);
+  return jsonb_build_object('xp', gx, 'coins', gc, 'level', p.level, 'capped', ok_n < p_answered);
 end $$;
 
 -- Nota chilena con 60% de exigencia (misma fórmula que js/util.js)
@@ -568,7 +579,6 @@ end $$;
 -- 9b. RPC: tienda de boosts (misma tabla que BOOSTS en js/data/catalog.js)
 --     Se pagan con monedas o sacrificando una carta de cierta rareza (aunque sea la única copia).
 --     Máximo 1 boost por día (hora de Chile), para que nadie queme todas sus legendarias.
---     El tope diario de estudio (3000 monedas) sigue igual, para no inflar el mercado.
 -- ---------------------------------------------------------------------
 create or replace function public.buy_boost(p_item text, p_card text default null)
 returns profiles language plpgsql security definer set search_path = public as $$
