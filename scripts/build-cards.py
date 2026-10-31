@@ -29,6 +29,11 @@ LL = ['Sonoda Umi', 'Minami Kotori', 'Tojo Nozomi', 'Toujou Nozomi', 'Nishikino 
       'Matsuura Kanan', 'Tsushima Yoshiko', 'Ohara Mari', 'Kurosawa Dia', 'Kunikida Hanamaru']
 
 
+# Nombres revisados a mano (id | nombre | serie); mandan sobre lo que se adivina del archivo.
+FIXED = {l.split('|')[0].strip(): [x.strip() for x in l.split('|')[1:]]
+         for l in open(os.path.join(OUT, 'scripts', 'card-names.txt'), encoding='utf-8') if l.strip() and not l.startswith('#')}
+
+
 def name_set(fn, spicy):
     s = fn.replace('-', ' ').replace('_', ' ')
     for n in LL:
@@ -88,7 +93,7 @@ def main():
                 cid = f'{prefix}{k:03d}'
                 anim = save(p, f'{OUT}/assets/cards/{cid}.webp', 520, 80)
                 save(p, f'{OUT}/assets/cards/t/{cid}.webp', 260, 72, animate=False)
-                name, set_ = name_set(fn, spicy)
+                name, set_ = FIXED.get(cid) or name_set(fn, spicy)
                 cards.append({'id': cid, 'rarity': rarity, 'set': set_, 'name': name or ('Indecente' if spicy else 'Mona') + f' #{k}',
                               'spicy': spicy, 'anim': anim})
                 print(cid, rarity, set_, fn[:50])

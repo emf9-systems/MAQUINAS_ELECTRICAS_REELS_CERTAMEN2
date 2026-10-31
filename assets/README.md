@@ -22,5 +22,5 @@ Ejemplo:
 }
 ```
 
-Para cambiar el **nombre o la serie** de una carta, edita `js/data/catalog.js` (no cambies los ids `c001`…).
+Para cambiar el **nombre o la serie** de una carta, edita su línea en `scripts/card-names.txt` (formato `id | nombre | serie`) y vuelve a correr el script. Para un cambio rápido sin regenerar, también sirve `NAMES` en `js/data/catalog.js`. No cambies los ids `c001`….
 Si se agregan cartas nuevas, después hay que correr `node scripts/gen-seed.mjs` y pegar `supabase/seed.sql` en Supabase.

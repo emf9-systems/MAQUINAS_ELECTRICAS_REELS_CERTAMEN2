@@ -1,0 +1,166 @@
+# Nombres revisados carta por carta. Formato: id | nombre | serie
+# build-cards.py los aplica por encima de lo que adivina del nombre del archivo.
+c001 | Akiyama Mio | K-On!
+c002 | Hirasawa Yui | K-On!
+c003 | Hirasawa Yui | K-On!
+c004 | Hirasawa Yui | K-On!
+c005 | Mio y Ritsu | K-On!
+c006 | Tainaka Ritsu | K-On!
+c007 | Akiyama Mio | K-On!
+c008 | Nakano Azusa | K-On!
+c009 | Kotobuki Tsumugi | K-On!
+c010 | Akiyama Mio | K-On!
+c011 | Nakano Azusa | K-On!
+c013 | Hatsune Miku | Vocaloid
+c014 | Gotoh Hitori | Bocchi the Rock!
+c015 | Tojo Nozomi | Love Live!
+c017 | Minami Kotori | Love Live!
+c026 | Hirasawa Yui | K-On!
+c027 | Tainaka Ritsu | K-On!
+c028 | Houkago Tea Time | K-On!
+c029 | Hirasawa Yui | K-On!
+c030 | Houkago Tea Time | K-On!
+c031 | Nakano Azusa | K-On!
+c032 | Houkago Tea Time | K-On!
+c035 | Minami Kotori | Love Live!
+c036 | Nishikino Maki | Love Live!
+c037 | μ's | Love Live!
+c038 | Eli, Maki y Nico | Love Live!
+c039 | Nishikino Maki | Love Live!
+c040 | Mari y Yoshiko | Love Live!
+c041 | Sakurauchi Riko | Love Live!
+c042 | Yazawa Nico | Love Live!
+c043 | Kurosawa Ruby | Love Live!
+c044 | Chica de Love Live! | Love Live!
+c045 | Tojo Nozomi | Love Live!
+c046 | Nozomi y Eli | Love Live!
+c047 | Minami Kotori | Love Live!
+c048 | Nishikino Maki | Love Live!
+c049 | Nozomi y Nico | Love Live!
+c055 | Hoshizora Rin | Love Live!
+c059 | Hoshizora Rin | Love Live!
+c060 | Kousaka Honoka | Love Live!
+c061 | Tojo Nozomi | Love Live!
+c062 | Yazawa Nico | Love Live!
+c063 | Tsushima Yoshiko | Love Live!
+c064 | Akiyama Mio | K-On!
+c065 | Kotobuki Tsumugi | K-On!
+c067 | Kasane Teto | Vocaloid
+c068 | Kotobuki Tsumugi | K-On!
+c069 | Kessoku Band | Bocchi the Rock!
+c074 | Gotoh Hitori | Bocchi the Rock!
+c075 | Gotoh Hitori | Bocchi the Rock!
+c076 | Gotoh Hitori | Bocchi the Rock!
+c085 | Hirasawa Yui | K-On!
+c092 | Kessoku Band | Bocchi the Rock!
+c093 | Kessoku Band | Bocchi the Rock!
+c094 | Akiyama Mio | K-On!
+c095 | Kotobuki Tsumugi | K-On!
+c096 | Honoka y Kotori | Love Live!
+c097 | Nico y Rin | Love Live!
+c098 | Umi y Honoka | Love Live!
+c099 | Houkago Tea Time | K-On!
+c100 | Yui y Ui | K-On!
+c101 | Houkago Tea Time | K-On!
+c102 | Houkago Tea Time | K-On!
+c103 | Houkago Tea Time | K-On!
+c104 | Houkago Tea Time | K-On!
+c107 | Yazawa Nico | Love Live!
+c108 | Gotoh Hitori | Bocchi the Rock!
+c109 | Hirasawa Yui | K-On!
+c115 | Nakano Azusa | K-On!
+c116 | Kessoku Band | Bocchi the Rock!
+c117 | Kessoku Band | Bocchi the Rock!
+c118 | Kessoku Band | Bocchi the Rock!
+c120 | Gotoh Hitori | Bocchi the Rock!
+c121 | Gotoh Hitori | Bocchi the Rock!
+c126 | Hirasawa Yui | K-On!
+c128 | Akiyama Mio | K-On!
+c130 | Nakano Azusa | K-On!
+c131 | Gotoh Hitori | Bocchi the Rock!
+c132 | Kita Ikuyo | Bocchi the Rock!
+c133 | Minami Kotori | Love Live!
+c134 | Gotoh Hitori | Bocchi the Rock!
+c137 | Miku, Teto y Neru | Vocaloid
+c139 | Tainaka Ritsu | K-On!
+c141 | Hirasawa Yui | K-On!
+c146 | Hirasawa Yui | K-On!
+c147 | Nakano Azusa | K-On!
+c151 | Hatsune Miku | Vocaloid
+c153 | Nakano Azusa | K-On!
+c155 | Hoshizora Rin | Love Live!
+c156 | Gotoh Hitori | Bocchi the Rock!
+c158 | Kasane Teto | Vocaloid
+h001 | Himejima Akeno | High School DxD
+h002 | Himejima Akeno | High School DxD
+h003 | Himejima Akeno | High School DxD
+h004 | Himejima Akeno | High School DxD
+h005 | Himejima Akeno | High School DxD
+h006 | Himejima Akeno | High School DxD
+h007 | Himejima Akeno | High School DxD
+h008 | Himejima Akeno | High School DxD
+h009 | Himejima Akeno | High School DxD
+h010 | Xenovia | High School DxD
+h011 | Xenovia | High School DxD
+h012 | Himejima Akeno | High School DxD
+h013 | Himejima Akeno | High School DxD
+h014 | Asia Argento | High School DxD
+h015 | Himejima Akeno | High School DxD
+h016 | Himejima Akeno | High School DxD
+h017 | Asia Argento | High School DxD
+h018 | Shidou Irina | High School DxD
+h019 | Asia Argento | High School DxD
+h020 | Himejima Akeno | High School DxD
+h021 | Asia Argento | High School DxD
+h022 | Shidou Irina | High School DxD
+h023 | Himejima Akeno | High School DxD
+h024 | Xenovia | High School DxD
+h025 | Shidou Irina | High School DxD
+h026 | Shidou Irina | High School DxD
+h027 | Himejima Akeno | High School DxD
+h028 | Himejima Akeno | High School DxD
+h029 | Himejima Akeno | High School DxD
+h030 | Himejima Akeno | High School DxD
+h031 | Himejima Akeno | High School DxD
+h032 | Himejima Akeno | High School DxD
+h033 | Rias y Asia | High School DxD
+h034 | Himejima Akeno | High School DxD
+h035 | Serafall, Rias y Asia | High School DxD
+h036 | Xenovia | High School DxD
+h037 | Himejima Akeno | High School DxD
+h038 | Asia Argento | High School DxD
+h039 | Grayfia e Irina | High School DxD
+h040 | Kuroka | High School DxD
+h041 | Kuroka | High School DxD
+h042 | Asia Argento | High School DxD
+h043 | Xenovia | High School DxD
+h044 | Himejima Akeno | High School DxD
+h045 | Rias y Akeno | High School DxD
+h046 | Rias y Akeno | High School DxD
+h047 | Xenovia | High School DxD
+h048 | Xenovia y Asia | High School DxD
+h049 | Xenovia | High School DxD
+h050 | Rias y Asia | High School DxD
+h051 | Rias y Asia | High School DxD
+h052 | Asia Argento | High School DxD
+h053 | Asia Argento | High School DxD
+h054 | Shidou Irina | High School DxD
+h055 | Xenovia e Irina | High School DxD
+h056 | Asia Argento | High School DxD
+h057 | Kuroka | High School DxD
+h058 | Asia Argento | High School DxD
+h059 | Himejima Akeno | High School DxD
+h060 | Xenovia | High School DxD
+h061 | Himejima Akeno | High School DxD
+h062 | Himejima Akeno | High School DxD
+h063 | Rias y Akeno | High School DxD
+h064 | Himejima Akeno | High School DxD
+h065 | Grayfia Lucifuge | High School DxD
+h066 | Himejima Akeno | High School DxD
+h067 | Xenovia | High School DxD
+h068 | Himejima Akeno | High School DxD
+h069 | Rias y Grayfia | High School DxD
+h070 | Xenovia y Asia | High School DxD
+h071 | Himejima Akeno | High School DxD
+h072 | Rias y Akeno | High School DxD
+h073 | Xenovia y Asia | High School DxD
