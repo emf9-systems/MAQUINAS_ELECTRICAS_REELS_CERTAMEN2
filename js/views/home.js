@@ -6,23 +6,26 @@ import { toast, SFX, coinRain, confetti } from '../fx.js';
 import { go } from '../router.js';
 import { hud } from '../game.js';
 import { fmt } from '../util.js';
+import { SUBJECT, SUBJECTS, setSubject } from '../subject.js';
+import { EXAM_FORMATS } from '../engine/pool.js';
 
 export function render(root) {
   const L = level();
   const el = h(`<section class="view home">
     <div class="hero card">
       <div class="grow">
-        <small class="muted">Certamen 2 · Control de Máquinas Eléctricas</small>
+        <small class="muted">${SUBJECT.exam} · ${SUBJECT.name}</small>
         <h1>Hola, ${esc(NET.name)} 👋</h1>
         <p class="muted">Nivel ${L.lv} · ${titleFor(L.lv)}</p>
         <div class="bar"><i style="width:${Math.round(L.pct * 100)}%"></i></div>
         <small class="muted">${L.into} / ${L.need} XP para el nivel ${L.lv + 1}</small>
       </div>
     </div>
+    <div class="card subjects"><small class="muted">Materia que estás estudiando (tu cuenta, XP, monedas y cartas son las mismas en todas)</small><div class="subj-row"></div></div>
     <div class="grid2">
-      <button class="cta big exam"><b>📝 Simulacro de certamen</b><small>12 preguntas · 12 minutos · nota 1,0–7,0</small></button>
+      <button class="cta big exam"><b>📝 Simulacro de certamen</b><small>12 preguntas · ${EXAM_FORMATS.c1.minutes} minutos · nota 1,0–7,0</small></button>
       <button class="cta big rush"><b>⚡ Modo Rush</b><small>Preguntas sin parar, combos y cofres</small></button>
-      <button class="cta learn"><b>📚 Aprender desde cero</b><small>10 lecciones con ejemplos resueltos</small></button>
+      <button class="cta learn"><b>📚 Aprender desde cero</b><small>${TOPICS.length} lecciones con ejemplos resueltos</small></button>
       <button class="cta practice"><b>✍️ Practicar desarrollo</b><small>Escribe el desarrollo y los resultados</small></button>
     </div>
     <div class="card daily"></div>
@@ -31,6 +34,11 @@ export function render(root) {
     <div class="card exams-card" hidden><h3>Tus últimos simulacros</h3><div class="exams"></div></div>
     <div class="card lobby" hidden><h3>En línea ahora</h3><div class="peers"></div><div class="hypelog small"></div></div>
   </section>`);
+  for (const s of SUBJECTS) {
+    const b = h(`<button class="subj ${s.id === SUBJECT.id ? 'on' : ''}"><span class="ic">${s.icon}</span><span><b>${esc(s.name)}</b><small>${esc(s.exam)} · ${esc(s.when)}</small></span></button>`);
+    b.onclick = () => { if (s.id !== SUBJECT.id) setSubject(s.id); };
+    $('.subj-row', el).append(b);
+  }
   $('.exam', el).onclick = () => go('exam');
   $('.rush', el).onclick = () => go('rush');
   $('.learn', el).onclick = () => go('learn');

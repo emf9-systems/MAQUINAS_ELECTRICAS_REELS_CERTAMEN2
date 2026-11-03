@@ -1,7 +1,7 @@
 // Piezas reutilizables: pregunta de alternativas, ejercicio de desarrollo, carta y avatar.
 import { h, $, $$, esc, tex, overlay } from './dom.js';
 import { parseNum, fmt, rng } from './util.js';
-import { checkNumeric, unitTxt } from './engine/mcq.js';
+import { checkNumeric, unitTxt, showNum } from './engine/mcq.js';
 import { CARD, RARITY } from './data/catalog.js';
 import { Media } from './fx.js';
 import { S } from './state.js';
@@ -16,7 +16,7 @@ const LETTERS = 'ABCD';
 export function mcqView(item, opts = {}) {
   const el = h(`<div class="mcq">
     ${item.topic ? `<div class="tags"><span class="tag">${esc(TOPIC[item.topic]?.short || '')}</span>${item.title ? `<span class="tag ghost">${esc(item.title)}</span>` : ''}</div>` : ''}
-    ${item.context ? `<p class="context">${item.context}</p>` : ''}
+    ${item.context ? `<div class="context">${item.context}</div>` : ''}
     <p class="q">${item.q}</p>
     <div class="opts"></div>
     <div class="explain" hidden></div>
@@ -70,7 +70,7 @@ export function tfItem(t) {
 export function devView(ex, opts = {}) {
   const el = h(`<div class="dev">
     <div class="tags"><span class="tag">${esc(TOPIC[ex.topic]?.short || '')}</span><span class="tag ghost">${esc(ex.title)}</span>${ex.fixed ? `<span class="tag gold">Guía ${ex.guide} · Ej. ${ex.n}</span>` : ''}</div>
-    <p class="context">${ex.text}</p>
+    <div class="context">${ex.text}</div>
     ${ex.note ? `<p class="small muted">Nota: ${esc(ex.note)}</p>` : ''}
     <label class="lbl">Tu desarrollo (escríbelo como en la hoja: datos, fórmulas y despejes)
       <textarea class="input devtext" rows="5" placeholder="Ej: If = V/Rf = 240/200 = 1,2 A&#10;Ia = IL − If = 35 − 1,2 = 33,8 A&#10;…"></textarea></label>
@@ -92,14 +92,14 @@ export function devView(ex, opts = {}) {
   const read = () => ({ text: $('.devtext', el).value, values: $$('.part input', el).map(i => i.value) });
   const grade = () => {
     const st = read();
-    const res = ex.parts.map((p, i) => checkNumeric(p, parseNum(st.values[i])));
+    const res = ex.parts.map((p, i) => checkNumeric(p, parseNum(p.unit === '$' ? String(st.values[i]).replace(/\./g, '') : st.values[i])));
     $$('.part', el).forEach((row, i) => {
       const ok = res[i], p = ex.parts[i];
       row.classList.toggle('ok', ok); row.classList.toggle('bad', !ok);
       $('.mark', row).textContent = ok ? '✓' : '✗';
       $('input', row).disabled = true;
       const sol = $('.psol', row); sol.hidden = false;
-      sol.innerHTML = `<div class="small">Respuesta: <b>${fmt(p.ans)}${unitTxt(p.unit)}</b>${ok ? '' : st.values[i] ? ` · tú: ${esc(st.values[i])}` : ' · sin respuesta'}</div>`;
+      sol.innerHTML = `<div class="small">Respuesta: <b>${showNum(p.ans, p.unit)}</b>${ok ? '' : st.values[i] ? ` · tú: ${esc(st.values[i])}` : ' · sin respuesta'}</div>`;
       sol.append(stepsView(p.steps, !ok));
     });
     $('.devtext', el).readOnly = true;

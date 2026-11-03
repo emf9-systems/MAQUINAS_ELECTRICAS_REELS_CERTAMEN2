@@ -280,3 +280,7 @@ export const LESSONS = {
     ],
   },
 };
+
+import { SUBJECT, swapArray, swapObject } from '../subject.js';
+import * as PP from './pp/lessons.js';
+if (SUBJECT.id === 'pp') { swapArray(TOPICS, PP.TOPICS); swapObject(TOPIC, PP.TOPIC); swapObject(LESSONS, PP.LESSONS); }

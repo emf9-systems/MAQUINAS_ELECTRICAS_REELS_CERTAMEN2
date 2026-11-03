@@ -593,3 +593,8 @@ export function generate(tplId, seed) {
   const ex = t.gen(r);
   return { id: `${tplId}#${seed}`, tpl: tplId, seed, topic: t.topic, title: t.title, diff: t.diff, ...ex };
 }
+
+// Materia activa: si es Preparación de Proyectos, este banco se reemplaza por el suyo.
+import { SUBJECT, swapArray, swapObject } from '../subject.js';
+import * as PP from './pp/generators.js';
+if (SUBJECT.id === 'pp') { swapArray(TEMPLATES, PP.TEMPLATES); swapObject(TEMPLATE, PP.TEMPLATE); }

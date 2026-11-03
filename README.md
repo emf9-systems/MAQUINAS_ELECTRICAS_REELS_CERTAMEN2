@@ -4,6 +4,13 @@ Web para estudiar el **Certamen 2 de Control de Máquinas Eléctricas** (USM, Se
 
 Es una página estática (HTML + JavaScript, sin compilación) que se publica con GitHub Pages. El login, el ranking, las cartas y el mercado usan Supabase. Sin Supabase funciona igual en **modo local** (todo se guarda en el navegador, sin ranking ni mercado).
 
+## Dos materias en la misma web
+
+Arriba en Inicio (o tocando el chip de la materia en la barra superior) se elige qué estudiar. Cada materia trae sus propias lecciones, bancos, ejercicios y simulacros; la cuenta, la XP, las monedas, el ranking y las cartas son los mismos. También se puede entrar directo con `?materia=pp` o `?materia=maq`.
+
+- **Preparación de Proyectos (Certamen 1)**: 8 lecciones (flujo de caja/VAN/TIR/PRI, depreciación SII, cuota fija, interés, oferta y demanda, mercado, ciclo del proyecto, estudio técnico/legal/societario) con formulario; 11 tipos de ejercicio con números al azar (el flujo de caja completo sigue el esquema del profesor: escudos fiscales, pérdida del ejercicio anterior, créditos CP cuando el inversionista solo pone dinero en el año 0); el certamen 2024 y los ejemplos de PP-1/PP-2 resueltos; ~170 preguntas teóricas. Simulacros: formato certamen (1 flujo de caja × 8 + 4 teóricas, 24 min), cálculo (3 × 4) y teórico, más el flujo completo en desarrollo (50 min). El contenido está en `js/content/pp/`.
+- **Control de Máquinas Eléctricas (Certamen 2)**: lo que se describe abajo.
+
 ## Qué trae (parte 1: lógica completa, sin multimedia)
 
 | Sección | Contenido |

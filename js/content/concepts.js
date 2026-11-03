@@ -186,3 +186,7 @@ const TF = [
 
 export const CONCEPTS = Q.map(([topic, q, opts, exp], i) => ({ id: 'q' + i, kind: 'concept', topic, q, opts, exp }));
 export const TRUEFALSE = TF.map(([topic, q, ans, exp], i) => ({ id: 'tf' + i, kind: 'tf', topic, q, ans, exp }));
+
+import { SUBJECT, swapArray } from '../subject.js';
+import * as PP from './pp/concepts.js';
+if (SUBJECT.id === 'pp') { swapArray(CONCEPTS, PP.CONCEPTS); swapArray(TRUEFALSE, PP.TRUEFALSE); }

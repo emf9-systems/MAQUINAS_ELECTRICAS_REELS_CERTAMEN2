@@ -8,11 +8,13 @@ import { answer, afterProgress } from '../game.js';
 import { level } from '../state.js';
 import { go } from '../router.js';
 import { fmt, newSeed } from '../util.js';
-import { unitTxt } from '../engine/mcq.js';
+import { unitTxt, showNum } from '../engine/mcq.js';
 import { banner, confetti, SFX } from '../fx.js';
 import { CONCEPTS } from '../content/concepts.js';
 import { TEMPLATES } from '../content/generators.js';
 import { GUIDE } from '../content/guide.js';
+import { SUBJECT } from '../subject.js';
+import { FORMULARIO as PP_FORM } from '../content/pp/lessons.js';
 
 export function render(root, params) {
   if (params.topic && LESSONS[params.topic]) return lesson(root, params.topic);
@@ -20,7 +22,7 @@ export function render(root, params) {
     <h2>Aprender</h2>
     <p class="muted">Ruta recomendada: sigue el orden. Cada lección explica la idea, las fórmulas del formulario, una receta paso a paso, los errores típicos, un ejemplo resuelto y un mini test. Al aprobar el mini test (3 de 5) la lección queda completa.</p>
     <div class="path"></div>
-    <div class="card"><h3>📄 Formulario del certamen</h3><p class="small muted">Todas las fórmulas del formulario oficial, agrupadas por máquina.</p><button class="btn formulario">Ver formulario</button></div>
+    <div class="card"><h3>📄 Formulario del certamen</h3><p class="small muted">${SUBJECT.id === 'pp' ? 'Fórmulas de matemática financiera, depreciación (tabla SII), flujo de caja e indicadores, y estudio de mercado.' : 'Todas las fórmulas del formulario oficial, agrupadas por máquina.'}</p><button class="btn formulario">Ver formulario</button></div>
   </section>`);
   const path = $('.path', el);
   TOPICS.forEach((t, i) => {
@@ -43,7 +45,7 @@ function lesson(root, id) {
     <div class="card"><h3>🧮 Fórmulas</h3><table class="ftable"></table></div>
     <div class="card"><h3>🪜 Receta paso a paso</h3><ol class="method"></ol></div>
     <div class="card warn"><h3>⚠️ Errores típicos</h3><ul class="traps"></ul></div>
-    <div class="card"><h3>🧪 Ejemplo resuelto</h3><p class="small muted">Lee el enunciado, intenta cada parte en tu cuaderno y después revela el paso.</p><div class="example"></div><div class="row"><button class="btn other">Otro ejemplo</button><button class="btn primary try">Resolverlo yo (desarrollo)</button></div></div>
+    <div class="card exbox"><h3>🧪 Ejemplo resuelto</h3><p class="small muted">Lee el enunciado, intenta cada parte en tu cuaderno y después revela el paso.</p><div class="example"></div><div class="row"><button class="btn other">Otro ejemplo</button><button class="btn primary try">Resolverlo yo (desarrollo)</button></div></div>
     <div class="card"><h3>✅ Mini test (5 preguntas)</h3><div class="quiz"></div></div>
   </section>`);
   $('.back', el).onclick = () => go('learn');
@@ -57,15 +59,15 @@ function lesson(root, id) {
   const drawExample = () => {
     exBox.innerHTML = '';
     const ex = generate(L.example, newSeed());
-    exBox.append(h(`<p class="context">${ex.text}</p>`));
+    exBox.append(h(`<div class="context">${ex.text}</div>`));
     ex.parts.forEach((p, i) => {
       const row = h(`<div class="wpart"><p><b>${i + 1}.</b> ${p.q}</p><button class="btn sm">Revelar</button><div class="sol" hidden></div></div>`);
-      $('button', row).onclick = (e) => { e.target.remove(); const s = $('.sol', row); s.hidden = false; s.append(stepsView(p.steps, true)); s.append(h(`<p class="answer">= <b>${fmt(p.ans)}${unitTxt(p.unit)}</b></p>`)); tex(s); };
+      $('button', row).onclick = (e) => { e.target.remove(); const s = $('.sol', row); s.hidden = false; s.append(stepsView(p.steps, true)); s.append(h(`<p class="answer">= <b>${showNum(p.ans, p.unit)}</b></p>`)); tex(s); };
       exBox.append(row);
     });
     tex(exBox);
   };
-  drawExample();
+  if (L.example) drawExample(); else $('.exbox', el).remove();
   $('.other', el).onclick = drawExample;
   $('.try', el).onclick = () => go('practice', { mode: 'dev', tpl: L.example });
 
@@ -114,10 +116,23 @@ const FORM = [
     ['Triángulo de potencia', 'S^2 = P^2 + Q^2,\\quad FP = \\cos\\varphi = \\dfrac{P}{S}'], ['Balance', 'P_{entrada} = P_{EH} + P_{cobre} + P_{núcleo},\\quad P_{EH} = P_{mec} + P_{salida} + P_{PCR}']]],
 ];
 function formulario(root) {
+  if (SUBJECT.id === 'pp') return formularioPP(root);
   root.innerHTML = '';
   const el = h(`<section class="view"><button class="btn ghost sm back">‹ Aprender</button><h2>Formulario Certamen 2</h2>
     <p class="small muted">Nota: el formulario original escribe \\(P_{PCR} = s\\,P_{salida}\\); la relación exacta (y la que usan las láminas) es \\(P_{PCR} = s\\,P_{EH}\\). P = número de polos, PP = pares de polos.</p></section>`);
   for (const [title, rows] of FORM) {
+    const c = h(`<div class="card"><h3>${esc(title)}</h3><table class="ftable"></table></div>`);
+    for (const [n, f] of rows) $('table', c).append(h(`<tr><th>${esc(n)}</th><td>\\(${f}\\)</td></tr>`));
+    el.append(c);
+  }
+  $('.back', el).onclick = () => go('learn');
+  root.append(el); tex(el);
+}
+
+function formularioPP(root) {
+  root.innerHTML = '';
+  const el = h(`<section class="view"><button class="btn ghost sm back">‹ Aprender</button><h2>${esc(PP_FORM.title)}</h2><p class="small muted">${esc(PP_FORM.note)}</p></section>`);
+  for (const [title, rows] of PP_FORM.groups) {
     const c = h(`<div class="card"><h3>${esc(title)}</h3><table class="ftable"></table></div>`);
     for (const [n, f] of rows) $('table', c).append(h(`<tr><th>${esc(n)}</th><td>\\(${f}\\)</td></tr>`));
     el.append(c);
