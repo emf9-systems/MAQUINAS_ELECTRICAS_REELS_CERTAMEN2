@@ -6,6 +6,7 @@ import { Media, SFX } from './fx.js';
 import { register, start, go, refreshView, viewName } from './router.js';
 import { setHud } from './game.js';
 import { avatarView, decencyDialog } from './components.js';
+import { SUBJECT } from './subject.js';
 import * as home from './views/home.js';
 import * as learn from './views/learn.js';
 import * as practice from './views/practice.js';
@@ -14,6 +15,8 @@ import * as rush from './views/rush.js';
 import * as cards from './views/cards.js';
 import * as profile from './views/profile.js';
 
+document.title = `${SUBJECT.app} · ${SUBJECT.exam}`;
+{ const b = $('.h-subj'); b.innerHTML = `${SUBJECT.icon}<span> ${esc(SUBJECT.short)}</span>`; b.onclick = () => { go('home'); setTimeout(() => document.querySelector('.subjects')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80); }; }
 register('home', home);
 register('learn', learn);
 register('practice', practice);

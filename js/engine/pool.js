@@ -5,6 +5,7 @@ import { GUIDE } from '../content/guide.js';
 import { partToMCQ, buildOptions } from './mcq.js';
 import { conceptItem, tfItem } from '../components.js';
 import { newSeed, rng } from '../util.js';
+import { SUBJECT } from '../subject.js';
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -48,17 +49,27 @@ export function topicQuiz(topic, n = 8) {
 
 // ---------------------------------------------------------------- simulacros
 // Formato del certamen: 12 preguntas en 12 minutos. El C1 fue 3 ejercicios × 4 preguntas.
-export const EXAM_FORMATS = {
+const PP = SUBJECT.id === 'pp';
+const MAQ_FORMATS = {
   c1: { name: 'Formato C1: 3 ejercicios × 4 preguntas', minutes: 12, desc: 'Igual que el certamen 1: tres enunciados de cálculo, cuatro preguntas de alternativas cada uno.' },
   mixto: { name: 'Mixto: 2 ejercicios × 4 + 4 teóricas', minutes: 12, desc: 'Dos enunciados de cálculo y cuatro preguntas de teoría (control, arranques, otros motores).' },
   teoria: { name: 'Teórico rápido: 12 preguntas', minutes: 12, desc: 'Solo conceptos de las presentaciones. Ideal para repasar el día antes.' },
 };
+// Preparación de Proyectos: el certamen 2024 fue un flujo de caja completo (60 pts) + 3 preguntas
+// de oferta y demanda (40 pts) en 80 minutos. Aquí se entrena en alternativas con ese peso.
+const PP_FORMATS = {
+  c1: { name: 'Formato certamen: 1 flujo de caja (8) + 4 teóricas', minutes: 24, desc: 'Un proyecto completo (depreciación, crédito, impuesto, flujo, VAN y PRI) y cuatro preguntas de oferta y demanda y teoría.' },
+  mixto: { name: 'Cálculo: 3 ejercicios × 4 preguntas', minutes: 18, desc: 'Interés, cuota fija, depreciación, VAN/PRI y regresión: las piezas del problema 1.' },
+  teoria: { name: 'Teórico rápido: 12 preguntas', minutes: 12, desc: 'Oferta y demanda, ciclo del proyecto, mercado, estudio técnico y escudos fiscales.' },
+};
+export const EXAM_FORMATS = PP ? PP_FORMATS : MAQ_FORMATS;
 // Los tres ejercicios salen de temas distintos para cubrir lo que el profesor dijo que entra:
 // motores CC, motores CA, control de motores CC y control de motores CA. Trifásico (conexión
 // del motor) y sincrónica aparecen poco, porque solo pesan como apoyo en la guía y el formulario.
 const EXAM_TOPIC_SETS = [['cc', 'ind', 'flujo'], ['cc', 'ccctrl', 'circ'], ['ccctrl', 'flujo', 'arr'], ['cc', 'flujo', 'circ'],
   ['cc', 'ind', 'circ'], ['fund', 'cc', 'flujo'], ['cc', 'trif', 'flujo'], ['ccctrl', 'ind', 'arr'], ['cc', 'sinc', 'circ']];
 
+const PP_TOPIC_SETS = [['pp_cuota', 'pp_depre', 'pp_flujo'], ['pp_interes', 'pp_depre', 'pp_flujo'], ['pp_cuota', 'pp_mercado', 'pp_flujo'], ['pp_interes', 'pp_cuota', 'pp_depre'], ['pp_depre', 'pp_mercado', 'pp_flujo']];
 function examExercise(topic, r) {
   const useGuide = r.chance(0.25);
   const fromGuide = GUIDE.filter(g => g.topic === topic && g.parts.length >= 4);
@@ -66,13 +77,14 @@ function examExercise(topic, r) {
   const list = TEMPLATES.filter(t => t.topic === topic);
   return generate(r.pick(list).id, r.int(1, 2 ** 30));
 }
-function fourParts(ex, r) {
-  // 4 partes manteniendo el orden del enunciado
-  const idx = r.shuffle(ex.parts.map((_, i) => i)).slice(0, 4).sort((a, b) => a - b);
+function fourParts(ex, r, k = 4) {
+  // k partes manteniendo el orden del enunciado
+  const idx = r.shuffle(ex.parts.map((_, i) => i)).slice(0, k).sort((a, b) => a - b);
   return idx.map(i => ({ ex, i }));
 }
 
 export function buildExam(format = 'c1', seed = newSeed()) {
+  if (PP) return buildExamPP(format, seed);
   const r = rng(seed);
   const qs = [];
   const nEx = format === 'c1' ? 3 : format === 'mixto' ? 2 : 0;
@@ -89,9 +101,37 @@ export function buildExam(format = 'c1', seed = newSeed()) {
   return { format, seed, minutes: EXAM_FORMATS[format].minutes, qs };
 }
 
+// Un flujo de caja completo: la plantilla con números nuevos o, a veces, el certamen 2024.
+function fullFlow(r) {
+  const past = GUIDE.filter(g => g.topic === 'pp_flujo' && g.parts.length >= 8);
+  if (past.length && r.chance(0.15)) return r.pick(past);
+  return generate('pp_flujo', r.int(1, 2 ** 30));
+}
+function buildExamPP(format, seed) {
+  const r = rng(seed), qs = [];
+  const push = (ex, i, group) => { const p = ex.parts[i], o = buildOptions(p, r.int(1, 2 ** 30)); qs.push({ kind: 'calc', group, topic: ex.topic, title: ex.title, context: ex.text, q: p.q, options: o.options, correct: o.correct, steps: p.steps }); };
+  if (format === 'c1') {
+    const ex = fullFlow(r);
+    for (const { i } of fourParts(ex, r, 8)) push(ex, i, 0);
+  } else if (format === 'mixto') {
+    r.pick(PP_TOPIC_SETS).forEach((t, k) => { const ex = examExercise(t, r); for (const { i } of fourParts(ex, r)) push(ex, i, k); });
+  }
+  const pool = CONCEPTS.filter(c => c.topic !== 'pp_flujo' || format === 'teoria');
+  const dda = r.shuffle(pool.filter(c => c.topic === 'pp_dda')), rest = r.shuffle(pool.filter(c => c.topic !== 'pp_dda'));
+  const need = 12 - qs.length, nDda = Math.min(dda.length, format === 'teoria' ? 4 : 3);
+  const theory = [...dda.slice(0, nDda), ...rest.slice(0, need - nDda)];
+  for (const c of r.shuffle(theory)) { if (qs.length >= 12) break; qs.push({ ...conceptItem(c, r.int(1, 2 ** 30)), group: 'teoria' }); }
+  return { format, seed, minutes: EXAM_FORMATS[format].minutes, qs };
+}
+
 // Simulacro de desarrollo: 3 ejercicios escritos (12 resultados), 36 minutos.
+// En Preparación de Proyectos: el problema 1 del certamen completo (flujo de caja), 50 minutos.
+export const DEV_EXAM = PP
+  ? { minutes: 50, label: '1 flujo de caja completo', desc: 'El problema 1 del certamen: depreciación, crédito, impuesto, flujo neto, VAN y PRI. Escribes cada resultado (UF con 2 decimales) y al final ves las tablas de la pauta.' }
+  : { minutes: 36, label: '3 ejercicios', desc: '3 ejercicios × 4 resultados, 36 minutos. Escribes el desarrollo y los resultados con el teclado. Al final ves la pauta de todo.' };
 export function buildDevExam(seed = newSeed()) {
   const r = rng(seed);
+  if (PP) return { seed, minutes: DEV_EXAM.minutes, exs: [fullFlow(r)] };
   const topics = r.pick(EXAM_TOPIC_SETS);
   const exs = topics.map(t => {
     const ex = examExercise(t, r);

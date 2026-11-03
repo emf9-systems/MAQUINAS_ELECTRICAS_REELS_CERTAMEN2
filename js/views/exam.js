@@ -1,6 +1,7 @@
 import { h, $, $$, esc, tex, confirmBox } from '../dom.js';
 import { S, save, mission, level, topicStat } from '../state.js';
-import { buildExam, buildDevExam, EXAM_FORMATS } from '../engine/pool.js';
+import { buildExam, buildDevExam, EXAM_FORMATS, DEV_EXAM } from '../engine/pool.js';
+import { SUBJECT } from '../subject.js';
 import { mcqView, devView, showExplain } from '../components.js';
 import { NET } from '../backend.js';
 import { afterProgress } from '../game.js';
@@ -16,14 +17,19 @@ export function render(root, p) {
   if (p.run === 'dev') return runDev(root);
   const el = h(`<section class="view exam-menu">
     <h2>Simulacros de certamen</h2>
-    <div class="card info"><b>¿Cómo es el certamen real?</b><p class="small">12 preguntas de alternativas en 12 minutos (1 minuto por pregunta). En el certamen 1 fueron 3 ejercicios con 4 preguntas cada uno. Nota de 1,0 a 7,0 con 60% de exigencia: necesitas 8 de 12 para el 4,0.</p></div>
+    <div class="card info"><b>¿Cómo es el certamen real?</b><p class="small">${SUBJECT.id === 'pp' ? 'Certamen escrito de 80 minutos con calculadora. En 2024: problema 1 (60 pts) = flujo de caja a 3 años con depreciación, crédito LP en cuota fija, créditos CP, impuesto 25%, VAN y PRI; problema 2 (40 pts) = tres preguntas de oferta y demanda. UF con 2 decimales y pesos sin decimales. Aquí lo practicas en alternativas (nota 1,0–7,0 con 60%) o completo en desarrollo.' : '12 preguntas de alternativas en 12 minutos (1 minuto por pregunta). En el certamen 1 fueron 3 ejercicios con 4 preguntas cada uno. Nota de 1,0 a 7,0 con 60% de exigencia: necesitas 8 de 12 para el 4,0.'}</p></div>
     <div class="formats"></div>
-    <div class="card"><h3>✍️ Simulacro de desarrollo</h3><p class="small muted">3 ejercicios × 4 resultados, 36 minutos. Escribes el desarrollo y los resultados con el teclado. Al final ves la pauta de todo.</p><button class="btn primary dev">Comenzar simulacro de desarrollo</button></div>
-    <div class="card tips"><h3>Consejos para los 12 minutos</h3><ul class="small">
+    <div class="card"><h3>✍️ Simulacro de desarrollo</h3><p class="small muted">${DEV_EXAM.desc}</p><button class="btn primary dev">Comenzar simulacro de desarrollo</button></div>
+    ${SUBJECT.id === 'pp' ? `<div class="card tips"><h3>Consejos para el certamen</h3><ul class="small">
+      <li>Arma las tablas en orden: depreciación → amortización del crédito → flujo de caja. Cada una alimenta a la siguiente.</li>
+      <li>Escudos fiscales (antes del impuesto): intereses LP y CP, depreciación y pérdida del ejercicio anterior. Después se vuelven a sumar la depreciación y la pérdida.</li>
+      <li>Si un año el total anual es negativo y el inversionista solo pone plata el año 0: crédito CP por ese monto, que se paga el año siguiente con su interés.</li>
+      <li>Último año: Vta − VL antes del impuesto y VL después. El terreno no se deprecia.</li>
+      <li>Problema 2: di qué pasa y por qué (sustituto ⇒ mismo sentido, complementario ⇒ sentido contrario).</li></ul></div>` : `<div class="card tips"><h3>Consejos para los 12 minutos</h3><ul class="small">
       <li>Lee primero el enunciado completo de cada ejercicio: las 4 preguntas suelen encadenarse (la 2 usa el resultado de la 1).</li>
       <li>Anota los datos en unidades base (W, rad/s, Ω) antes de empezar.</li>
       <li>Revisa "polos" vs "pares de polos" y si te dan potencia útil o absorbida.</li>
-      <li>Las alternativas trampa salen de errores típicos: si tu número aparece, igual revisa el paso dudoso.</li></ul></div>
+      <li>Las alternativas trampa salen de errores típicos: si tu número aparece, igual revisa el paso dudoso.</li></ul></div>`}
   </section>`);
   for (const [k, f] of Object.entries(EXAM_FORMATS)) {
     const c = h(`<div class="card format"><h3>📝 ${esc(f.name)}</h3><p class="small muted">${esc(f.desc)}</p><button class="btn primary">Comenzar (${f.minutes} min)</button></div>`);
@@ -50,7 +56,7 @@ function runAlt(root, format) {
   const paint = () => $$('.dot', dots).forEach((d, i) => { d.classList.toggle('ans', ans[i] !== null); d.classList.toggle('flag', flag[i]); d.classList.toggle('cur', i === cur); });
   const show = (i) => {
     cur = i; const q = E.qs[i], box = $('.qbox', el); box.innerHTML = '';
-    const head = q.group === 'teoria' ? 'Pregunta teórica' : `Ejercicio ${q.group + 1} · pregunta ${E.qs.filter((x, j) => x.group === q.group && j <= i).length} de 4`;
+    const head = q.group === 'teoria' ? 'Pregunta teórica' : `Ejercicio ${q.group + 1} · pregunta ${E.qs.filter((x, j) => x.group === q.group && j <= i).length} de ${E.qs.filter(x => x.group === q.group).length}`;
     box.append(h(`<small class="muted">${head} · ${i + 1}/12</small>`));
     box.append(mcqView(q, { exam: true, selected: ans[i], onPick: (k) => { ans[i] = k; SFX.click(); paint(); } }));
     $('.flag', el).classList.toggle('on', flag[i]);
@@ -119,10 +125,10 @@ function runDev(root) {
   const E = buildDevExam();
   const t0 = Date.now(), end = t0 + E.minutes * 60e3;
   let done = false;
-  const el = h(`<section class="view exam-run"><div class="exam-bar"><b class="clock">${E.minutes}:00</b><span class="grow small muted">Simulacro de desarrollo · 3 ejercicios</span><button class="btn sm gold submit">Entregar</button></div><div class="exs"></div>
+  const el = h(`<section class="view exam-run"><div class="exam-bar"><b class="clock">${E.minutes}:00</b><span class="grow small muted">Simulacro de desarrollo · ${DEV_EXAM.label}</span><button class="btn sm gold submit">Entregar</button></div><div class="exs"></div>
     <div class="row end"><button class="btn gold submit2">Entregar certamen</button></div></section>`);
   const views = E.exs.map((ex, i) => { const v = devView(ex, { exam: true }); const c = h(`<div class="card"><h3>Ejercicio ${i + 1}</h3></div>`); c.append(v); $('.exs', el).append(c); return v; });
-  const ask = async () => { if (await confirmBox('¿Entregar el certamen?', 'Se corregirán los 12 resultados.', 'Entregar')) finish(); };
+  const ask = async () => { if (await confirmBox('¿Entregar el certamen?', `Se corregirán los ${E.exs.reduce((s, x) => s + x.parts.length, 0)} resultados.`, 'Entregar')) finish(); };
   $('.submit', el).onclick = ask; $('.submit2', el).onclick = ask;
   setGuard(async () => done || await confirmBox('¿Salir del certamen?', 'Si sales, el intento se pierde.', 'Salir'));
   timer = setInterval(() => { const left = end - Date.now(); $('.clock', el).textContent = clock(left); $('.clock', el).classList.toggle('hurry', left < 120e3); if (left <= 0) finish(); }, 1000);
@@ -132,7 +138,7 @@ function runDev(root) {
     const nOk = res.reduce((a, r) => a + r.ok, 0), total = res.reduce((a, r) => a + r.total, 0);
     E.exs.forEach((ex, i) => res[i].parts.forEach(ok => topicStat(ex.topic, ok)));
     const secs = Math.round((Date.now() - t0) / 1000), lv = level().lv;
-    mission('exam'); mission('dev', 3); S.devDone += 3;
+    mission('exam'); mission('dev', E.exs.length); S.devDone += E.exs.length;
     let r = { grade: gradeCL(nOk, total), coins: 0, xp: nOk * 15 };
     try { r = await NET.submitExam('desarrollo', nOk, total, secs); } catch (e) { toast('No se guardó en el servidor', e.message, '!', 'bad'); }
     save(); afterProgress(lv);

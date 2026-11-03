@@ -262,3 +262,7 @@ const add = (...a) => GUIDE.push(ex(...a));
 }
 
 export const GUIDE_BY_ID = Object.fromEntries(GUIDE.map(g => [g.id, g]));
+
+import { SUBJECT, swapArray, swapObject } from '../subject.js';
+import * as PP from './pp/guide.js';
+if (SUBJECT.id === 'pp') { swapArray(GUIDE, PP.GUIDE); swapObject(GUIDE_BY_ID, PP.GUIDE_BY_ID); }

@@ -48,6 +48,18 @@ export function fmt(x, tex = false) {
 }
 export const T = (x) => fmt(x, true);
 
+// Dinero como lo pide Preparación de Proyectos: UF y US$ con 2 decimales, pesos sin decimales,
+// con punto de miles y coma decimal.
+export const MONEY = ['UF', 'US$', '$'];
+export function money(x, unit = 'UF', tex = false) {
+  if (typeof x !== 'number' || !isFinite(x)) return String(x);
+  const d = unit === '$' ? 0 : 2;
+  const [i, f] = Math.abs(x).toFixed(d).split('.');
+  const neg = x < 0 && Number(Math.abs(x).toFixed(d)) > 0;
+  const s = (neg ? '-' : '') + i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (f ? ',' + f : '');
+  return tex ? s.replace(',', '{,}') : s;
+}
+
 // Lee lo que escribe el alumno: "4762,35", "4.762,35", "4,76k", "1.2e3", "86,9 %", "230 V".
 export function parseNum(input) {
   if (input === null || input === undefined) return NaN;

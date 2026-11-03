@@ -11,16 +11,16 @@ import { answer, afterProgress } from '../game.js';
 import { hit, banner, confetti, SFX } from '../fx.js';
 import { go } from '../router.js';
 import { newSeed } from '../util.js';
+import { SUBJECT } from '../subject.js';
 
 export function render(root, p) {
   if (p.mode === 'dev') return devMode(root, p);
   if (p.mode === 'guide') return guideMode(root, p);
   if (p.mode === 'bank') return bankMode(root, p);
-  const nGuideOk = Object.values(S.guide).filter(x => x === 'ok').length;
   const el = h(`<section class="view practice">
     <h2>Practicar</h2>
     <div class="card"><h3>✍️ Desarrollo escrito por tema</h3><p class="small muted">Te damos un enunciado con números nuevos cada vez. Escribes tu desarrollo y el resultado de cada parte con el teclado; se corrige al instante (tolerancia ±2% por redondeo) y ves la pauta paso a paso.</p><div class="chips dev"></div><button class="btn primary any">Ejercicio al azar</button></div>
-    <div class="card"><h3>📘 Guías del curso resueltas</h3><p class="small muted">Los 9 ejercicios de Máquinas CC y los 17 de Máquinas CA, con pauta completa. Llevas ${nGuideOk}/26.</p><div class="guides"></div></div>
+    <div class="card"><h3>📘 Guías del curso resueltas</h3><p class="small muted">${SUBJECT.id === 'pp' ? 'El certamen 2024 completo y los ejercicios de las clases (PP-1 y PP-2)' : 'Los 9 ejercicios de Máquinas CC y los 17 de Máquinas CA'}, con pauta completa. Llevas ${GUIDE.filter(g => S.guide[g.id] === 'ok').length}/${GUIDE.length}.</p><div class="guides"></div></div>
     <div class="card"><h3>🔘 Banco de alternativas por tema</h3><p class="small muted">${CONCEPTS.length} preguntas teóricas + ejercicios de cálculo infinitos (${TEMPLATES.length} tipos). Sin límite de tiempo.</p><div class="chips bank"></div></div>
     <div class="card"><h3>📝 Simulacros</h3><button class="btn exam">Ir a simulacros de certamen</button></div>
   </section>`);
@@ -31,8 +31,8 @@ export function render(root, p) {
   const all = h('<button class="chip hot">🎲 Todos los temas</button>'); all.onclick = () => go('practice', { mode: 'bank' }); $('.bank', el).prepend(all);
   $('.any', el).onclick = () => go('practice', { mode: 'dev' });
   $('.exam', el).onclick = () => go('exam');
-  for (const g of ['CC', 'CA']) {
-    const row = h(`<div class="guide-row"><b>Máquinas ${g}</b><div class="gbtns"></div></div>`);
+  for (const g of [...new Set(GUIDE.map(x => x.guide))]) {
+    const row = h(`<div class="guide-row"><b>${SUBJECT.id === 'pp' ? esc(g) : 'Máquinas ' + g}</b><div class="gbtns"></div></div>`);
     for (const ex of GUIDE.filter(x => x.guide === g)) {
       const st = S.guide[ex.id];
       const b = h(`<button class="gbtn ${st === 'ok' ? 'ok' : st ? 'tried' : ''}" title="${esc(ex.title)}">${ex.n}</button>`);
