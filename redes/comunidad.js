@@ -1,9 +1,10 @@
-// Redes Reels · pestaña Comunidad.
+// Redes Reels · cuenta compartida con Máquinas Rush.
 // Conecta Redes Reels con la misma cuenta de Supabase que Máquinas Rush (misma web, mismo origen):
-// el login es el mismo, y aquí se ven el perfil, el ranking, la colección de cartas y los sobres.
+// el login es el mismo, y la colección de Redes ES la de Máquinas Rush (pestañas Colección y Sobres),
+// más el perfil y el ranking en la pestaña Comunidad. Redes ya no tiene stickers ni monedas propias.
 // Lo que se gana estudiando Redes se envía con las mismas RPC del servidor (grant_study y submit_exam),
 // así que respeta los mismos topes anti-trampa. Redes conserva su propio progreso local (niveles,
-// stickers de reacción, XP del juego); la XP, las monedas y las cartas de la CUENTA viven en el servidor.
+// XP del juego, trofeos); la XP, las monedas y las cartas de la CUENTA viven en el servidor.
 import { CARDS, CARD, RARITY, PACKS, cardsFor } from '../js/data/catalog.js';
 
 const CFG = window.CERT_CONFIG || {};
@@ -29,14 +30,14 @@ const RC = {
   get online() { return this.mode === 'online'; },
 
   async init() {
-    if (!CFG.url || !CFG.key || !window.supabase?.createClient) { this.mode = 'off'; this.render(); return; }
+    if (!CFG.url || !CFG.key || !window.supabase?.createClient) { this.mode = 'off'; this.render(); this.hud(); this.paintPanes(); return; }
     try {
       // Sin storageKey propio: así usa la misma sesión que Máquinas Rush (mismo origen).
       this.sb = window.supabase.createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true } });
       const { data } = await this.sb.auth.getSession();
       await this.setUser(data.session?.user || null);
       this.sb.auth.onAuthStateChange((_e, s) => { if ((s?.user?.id || null) !== (this.user?.id || null)) this.setUser(s?.user || null); });
-    } catch (e) { console.error(e); this.mode = 'off'; this.err = friendly(e); this.render(); }
+    } catch (e) { console.error(e); this.mode = 'off'; this.err = friendly(e); this.render(); this.hud(); this.paintPanes(); }
     addEventListener('pagehide', () => this.flush());
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.flush(); });
   },
@@ -44,7 +45,7 @@ const RC = {
   async setUser(u) {
     this.user = u; this.profile = null; this.inv = {};
     this.mode = u ? 'online' : 'guest';
-    if (u) await this.refresh(); else this.render();
+    if (u) await this.refresh(); else { this.render(); this.paintPanes(); if (typeof hubUpd === 'function') hubUpd(); }
     this.hud();
   },
 
@@ -56,7 +57,16 @@ const RC = {
     ]);
     if (p.data) this.profile = p.data;
     if (c.data) this.inv = Object.fromEntries(c.data.filter((x) => x.qty > 0).map((x) => [x.card_id, x.qty]));
-    this.render(); this.hud();
+    this.render(); this.hud(); this.paintPanes();
+    if (typeof hubUpd === 'function' && !document.getElementById('hub').hidden) hubUpd();
+    if (typeof hudUpd === 'function') hudUpd();
+    if (typeof checkTro === 'function') checkTro();
+  },
+  // Colección y Sobres son pestañas propias de Redes: se repintan si están a la vista.
+  paintPanes() {
+    const col = $('#p-col'), shop = $('#p-shop');
+    if (col && !col.hidden) this.renderColPane($('#cm-colpane'));
+    if (shop && !shop.hidden) this.renderShopPane($('#cm-shoppane'));
   },
 
   async rpc(fn, args = {}) {
@@ -130,8 +140,8 @@ const RC = {
   hud() {
     const chip = $('#h-acc'); if (!chip) return;
     chip.onclick = () => { if (typeof showPane === 'function') showPane('com'); };
-    if (this.online && this.profile) { chip.hidden = false; chip.innerHTML = '🌐 <b>NV ' + this.profile.level + '</b> · ' + fmt(this.profile.coins) + ' 💰'; }
-    else chip.hidden = true;
+    if (this.online && this.profile) chip.innerHTML = '🌐 <b>NV ' + this.profile.level + '</b> · 💰 ' + fmt(this.profile.coins) + ' · 🎁 ' + this.profile.free_packs;
+    else chip.innerHTML = '🌐 <b>' + (this.mode === 'off' ? 'Sin conexión' : this.mode === 'loading' ? '…' : 'Entrar') + '</b>';
   },
   avatar(p, size = 44) {
     const name = p.display_name || p.username || '?';
@@ -157,7 +167,8 @@ const RC = {
     if (this.mode === 'guest') return this.renderLogin(root);
     const p = this.profile;
     if (!p) { root.innerHTML = '<div class="sec"><h2>Comunidad</h2><p class="note">Cargando tu perfil…</p></div>'; return; }
-    const tabs = [['perfil', 'Perfil'], ['ranking', 'Ranking'], ['coleccion', 'Colección'], ['sobres', 'Sobres']];
+    const tabs = [['perfil', 'Perfil'], ['ranking', 'Ranking']];
+    if (!tabs.some(([k]) => k === this.tab)) this.tab = 'perfil';
     root.innerHTML = '<div class="sec"><h2>Comunidad <small>misma cuenta que Máquinas Rush</small></h2>'
       + '<div class="cm-me">' + this.avatar(p, 56) + '<div style="min-width:0"><b class="cm-name">' + esc(p.display_name || p.username) + ' ' + (p.indecente ? '😈' : '😇') + '</b>'
       + '<span class="note">@' + esc(p.username) + (p.title ? ' · ' + esc(p.title) : '') + '</span>'
@@ -166,7 +177,7 @@ const RC = {
       + '<div id="cm-body"></div></div>';
     root.querySelectorAll('.cm-tabs button').forEach((b) => b.onclick = () => { this.tab = b.dataset.t; this.render(); });
     const body = $('#cm-body', root);
-    ({ perfil: () => this.renderPerfil(body), ranking: () => this.renderRanking(body), coleccion: () => this.renderCol(body), sobres: () => this.renderPacks(body) })[this.tab]();
+    ({ perfil: () => this.renderPerfil(body), ranking: () => this.renderRanking(body) })[this.tab]();
   },
 
   renderLogin(root) {
@@ -188,12 +199,15 @@ const RC = {
     const p = this.profile; const own = Object.keys(this.inv).length; const total = cardsFor(p.indecente).length;
     const daily = p.last_daily !== todayCL();
     body.innerHTML = '<div class="statgrid"><div class="stat"><b>' + fmt(p.correct_total) + '</b><span>correctas</span></div><div class="stat"><b>' + own + '/' + total + '</b><span>cartas</span></div><div class="stat"><b>' + p.day_streak + '</b><span>días seguidos</span></div></div>'
+      + '<div class="row"><button class="btn" type="button" id="cm-gocol" style="--c:var(--pb)">🖼️ Mi colección</button><button class="btn" type="button" id="cm-goshop" style="--c:var(--xp)">🛍️ Abrir sobres</button></div>'
       + '<p class="note">Desde que abriste Redes en esta sesión, enviaste <b>+' + fmt(this.sent.xp) + ' XP</b> y <b>+' + fmt(this.sent.coins) + ' monedas</b> a tu cuenta. Cada respuesta de alternativas vale como pregunta de práctica; el desarrollo que marcas como «La clavé» vale como desarrollo; los simulacros de 70 min suman al guardar la nota.</p>'
       + (daily ? '<button class="bigbtn" type="button" id="cm-daily" style="--c:var(--xp);border-color:var(--xp)"><span class="ic">🎁</span><div><b>Reclamar premio diario</b><span>Monedas según tu racha + 1 sobre gratis. Es el mismo premio de Máquinas Rush.</span></div></button>' : '<p class="note">✓ Premio diario ya reclamado hoy.</p>')
       + '<div class="row"><a class="btn ghost cm-a" href="../#profile">Editar perfil en Máquinas Rush</a><button class="btn ghost" type="button" id="cm-out">Cerrar sesión</button></div>';
     const d = $('#cm-daily', body);
     if (d) d.onclick = async () => { d.disabled = true; try { const r = await this.claimDaily(); if (r?.ok && window.banner) window.banner('🎁', 'Premio diario', '+' + r.coins + ' monedas · racha ' + r.streak + ' · +1 sobre gratis'); } catch (e) { alert0(e.message); d.disabled = false; } };
     $('#cm-out', body).onclick = () => this.signOut();
+    $('#cm-gocol', body).onclick = () => showPane('col');
+    $('#cm-goshop', body).onclick = () => showPane('shop');
   },
 
   async renderRanking(body) {
@@ -211,6 +225,57 @@ const RC = {
     } catch (e) { box.innerHTML = '<p class="note">' + esc(e.message) + '</p>'; }
   },
 
+  // Sin sesión, Colección y Sobres muestran el acceso (la colección vive en la cuenta).
+  gate(root, what) {
+    if (this.online && this.profile) return false;
+    if (this.mode === 'loading' || (this.online && !this.profile)) { root.innerHTML = '<p class="note">Cargando tu cuenta…</p>'; return true; }
+    if (this.mode === 'off') { root.innerHTML = '<p class="note">No hay conexión con el servidor de cuentas. ' + esc(what) + ' necesita tu cuenta de Máquinas Rush.</p>'; return true; }
+    root.innerHTML = '<p class="note">' + esc(what) + ' es la de tu cuenta de Máquinas Rush: las mismas cartas, sobres y monedas.</p><button class="btn" type="button" style="--c:var(--eth)">Entrar con mi cuenta</button>';
+    root.querySelector('button').onclick = () => showPane('com');
+    return true;
+  },
+  colF: 'all',
+  renderColPane(root) {
+    if (!root || this.gate(root, 'La colección')) return;
+    const pool = cardsFor(this.profile.indecente);
+    const own = pool.filter((c) => this.inv[c.id]).length;
+    const cnt = $('#colcount'); if (cnt) cnt.textContent = own + ' / ' + pool.length + ' cartas';
+    const rar = [['all', 'Todas'], ...Object.values(RARITY).map((r) => [r.id, r.name])];
+    const list = pool.filter((c) => this.colF === 'all' || c.rarity === this.colF)
+      .sort((a, b) => (this.inv[b.id] ? 1 : 0) - (this.inv[a.id] ? 1 : 0) || RARITY[b.rarity].rank - RARITY[a.rarity].rank);
+    root.innerHTML = '<div class="filt">' + rar.map(([k, n]) => '<button type="button" data-f="' + k + '" aria-pressed="' + (this.colF === k) + '">' + esc(n) + '</button>').join('') + '</div>'
+      + '<p class="note">La misma colección de Máquinas Rush. Toca una carta tuya para verla o destacarla en tu perfil; las que tienes también salen como reacción cuando aciertas. Vender y el mercado están en Máquinas Rush.</p>'
+      + '<div class="cm-grid">' + list.map((c) => this.inv[c.id] ? this.cardHTML(c, this.inv[c.id]) : '<div class="cm-card cm-lock" style="--rc:' + RARITY[c.rarity].color + '"><img loading="lazy" src="' + art(c, true) + '" alt=""><span class="cm-rar">' + esc(RARITY[c.rarity].name) + '</span><span class="cm-nm">???</span></div>').join('') + '</div>'
+      + '<a class="btn ghost cm-a" href="../#cards" style="margin-top:10px">Mercado e intercambios en Máquinas Rush</a>';
+    root.querySelectorAll('.filt button').forEach((b) => b.onclick = () => { this.colF = b.dataset.f; this.renderColPane(root); });
+    root.querySelectorAll('button.cm-card').forEach((b) => b.onclick = () => this.showCard(CARD[b.dataset.card]));
+  },
+  renderShopPane(root) {
+    if (!root || this.gate(root, 'La tienda de sobres')) return;
+    this.renderPacks(root);
+  },
+  cardStats() {
+    if (!this.online || !this.profile) return null;
+    const pool = cardsFor(this.profile.indecente);
+    return { own: pool.filter((c) => this.inv[c.id]).length, total: pool.length, leg: pool.some((c) => this.inv[c.id] && RARITY[c.rarity].rank >= 4) };
+  },
+  // Reacciones al acertar: las cartas animadas (decentes) que tienes.
+  reactionPool() {
+    if (!this.online) return [];
+    return CARDS.filter((c) => this.inv[c.id] && c.anim && !c.spicy).map((c) => art(c));
+  },
+  avatarSrc() {
+    const p = this.profile; if (!p) return '';
+    if (isUrl(p.avatar_url)) return p.avatar_url;
+    const f = CARD[p.favorite_card]; if (f && !f.spicy) return art(f, true);
+    return '';
+  },
+  async setFavorite(id) {
+    const p = this.profile;
+    this.profile = await this.rpc('update_profile', { p_display_name: p.display_name, p_bio: p.bio, p_accent: p.accent, p_title: p.title, p_favorite_card: id, p_avatar_url: p.avatar_url });
+    await this.refresh();
+  },
+
   renderCol(body) {
     const pool = cardsFor(this.profile.indecente);
     const own = pool.filter((c) => this.inv[c.id]);
@@ -222,13 +287,17 @@ const RC = {
   showCard(c) {
     if (!c || typeof openModal !== 'function') return;
     const r = RARITY[c.rarity]; const blur = c.spicy && !this.profile?.indecente;
-    const m = openModal('<h3>' + esc(c.name) + '</h3><span class="rbadge" style="--rc2:' + r.color + '">' + esc(r.name) + '</span><img class="big' + (blur ? ' cm-blur-img' : '') + '" src="' + art(c) + '" alt=""><p class="note">' + esc(c.set) + ' · tienes ' + (this.inv[c.id] || 0) + '</p><button class="btn" type="button" id="cm-x">Cerrar</button>', r.color);
+    const fav = this.profile?.favorite_card === c.id;
+    const m = openModal('<h3>' + esc(c.name) + '</h3><span class="rbadge" style="--rc2:' + r.color + '">' + esc(r.name) + '</span><img class="big' + (blur ? ' cm-blur-img' : '') + '" src="' + art(c) + '" alt=""><p class="note">' + esc(c.set) + ' · tienes ' + (this.inv[c.id] || 0) + '</p>'
+      + '<div class="row"><button class="btn" type="button" id="cm-fav"' + (fav ? ' disabled' : '') + '>' + (fav ? '★ Destacada en tu perfil' : '☆ Destacar en mi perfil') + '</button><button class="btn ghost" type="button" id="cm-x">Cerrar</button></div>', r.color);
     m.querySelector('#cm-x').onclick = closeModal;
+    const fb = m.querySelector('#cm-fav');
+    fb.onclick = async () => { fb.disabled = true; try { await this.setFavorite(c.id); closeModal(); if (window.toast) toast('CARTA DESTACADA', 'var(--xp)'); } catch (e) { alert0(e.message); fb.disabled = false; } };
   },
 
   renderPacks(body) {
     const p = this.profile;
-    body.innerHTML = '<p class="note">Sobres de la cuenta compartida: se pagan con las monedas de la cuenta (💰 ' + fmt(p.coins) + '), no con las 🪙 de Redes. El azar ocurre en el servidor. Tienes ' + p.free_packs + ' sobre(s) gratis.</p><div class="packs">'
+    body.innerHTML = '<p class="note">Sobres de la cuenta compartida: se pagan con las monedas de tu cuenta (💰 ' + fmt(p.coins) + '). El azar ocurre en el servidor. Tienes ' + p.free_packs + ' sobre(s) gratis.</p><div class="packs">'
       + PACKS.map((k) => {
         const free = k.freeOnly; const can = free ? p.free_packs > 0 : p.coins >= k.price;
         return '<div class="pack" style="--pc:' + (free ? 'var(--xp)' : k.id === 'legendario' ? 'var(--rl)' : k.id === 'grande' ? 'var(--re)' : 'var(--rr)') + '"><div class="art">' + esc(k.name.replace('Sobre ', '').toUpperCase()) + '</div><div><b>' + esc(k.name) + '</b><span class="note">' + esc(k.desc) + '</span><div class="odds">' + k.n + ' cartas</div></div>'
@@ -258,7 +327,7 @@ const RC = {
       el.onclick = flip; setTimeout(flip, 500 + i * 450);
     });
     if (best >= 4 && typeof confetti === 'function') setTimeout(() => confetti(200), 600 + cards.length * 450);
-    m.querySelector('#cm-ok').onclick = () => { closeModal(); this.render(); };
+    m.querySelector('#cm-ok').onclick = () => { closeModal(); this.render(); this.paintPanes(); };
   },
 };
 

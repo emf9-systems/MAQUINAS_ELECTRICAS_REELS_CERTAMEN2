@@ -37,11 +37,11 @@ Arriba en Inicio (o tocando el chip de la materia en la barra superior) se elige
 
 App aparte para **Redes Computacionales e Industriales** (Certamen 2 y 3: Ethernet Industrial, Profinet, Profibus, Modbus, Fieldbus, HART, AS-i y DCS), en formato reels con voz narradora, videos de fondo, niveles, simulacros de 70 minutos, stickers de reacción y trofeos. Se abre en `/redes/` o desde la tarjeta 📡 en el selector de materia.
 
-Conserva su propia interfaz y su progreso local (niveles, stickers, XP del juego en este navegador), y **comparte con Máquinas Rush solo la cuenta, las cartas y el ranking** desde la pestaña 🌐 **Comunidad** ([`redes/comunidad.js`](redes/comunidad.js)):
+Conserva su propia interfaz y su progreso de estudio local (niveles, XP del juego y trofeos en este navegador). **No tiene coleccionables ni monedas propias**: sus pestañas Colección y Sobres muestran la colección de Máquinas Rush, y la cuenta, las monedas y el ranking son los mismos ([`redes/comunidad.js`](redes/comunidad.js)):
 
 - **Cuenta**: mismo login de Supabase. Como está en el mismo dominio, si ya entraste en Máquinas Rush, Redes reconoce la sesión sola. Las cuentas nuevas se crean en Máquinas Rush (ahí se elige decente/indecente).
 - **Ranking y XP**: cada respuesta de Redes se envía en lotes con `grant_study` (`mcq` para alternativas/V-F/speed/jefes, `dev` para desarrollo autocorregido) y cada simulacro de 70 min con `submit_exam` en modo `desarrollo` (no cambia la mejor nota de alternativas). Aplican los mismos topes del servidor.
-- **Cartas y sobres**: colección, premio diario y apertura de sobres con `claim_daily` y `open_pack` (el azar sigue en el servidor). Venta, mercado e intercambios se hacen en Máquinas Rush.
+- **Cartas y sobres**: la pestaña Colección es la colección de la cuenta (con las que faltan bloqueadas) y permite destacar una carta (`update_profile`); la pestaña Sobres abre los mismos sobres con `open_pack` (el azar sigue en el servidor); el premio diario usa `claim_daily`. Las cartas animadas que tienes salen como reacción al acertar. Venta, mercado e intercambios se hacen en Máquinas Rush.
 - No requiere cambios en `schema.sql`.
 
 ## Decentes e indecentes
