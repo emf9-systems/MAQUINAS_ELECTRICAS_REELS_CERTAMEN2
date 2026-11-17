@@ -39,6 +39,8 @@ export function render(root) {
     b.onclick = () => { if (s.id !== SUBJECT.id) setSubject(s.id); };
     $('.subj-row', el).append(b);
   }
+  // Redes Reels es una app aparte (carpeta redes/) que comparte la cuenta, las cartas y el ranking.
+  $('.subj-row', el).append(h(`<a class="subj" href="redes/" style="text-decoration:none;color:inherit"><span class="ic">📡</span><span><b>Redes Computacionales e Industriales</b><small>Certamen 3 · Redes Reels (abre aparte, misma cuenta)</small></span></a>`));
   $('.exam', el).onclick = () => go('exam');
   $('.rush', el).onclick = () => go('rush');
   $('.learn', el).onclick = () => go('learn');
