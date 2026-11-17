@@ -33,6 +33,17 @@ Arriba en Inicio (o tocando el chip de la materia en la barra superior) se elige
 
 > Dos observaciones sobre el material: el formulario escribe \(P_{PCR} = s\,P_{salida}\), pero la relación correcta (y la de las láminas) es \(P_{PCR} = s\,P_{EH}\); y en la tabla de velocidades de la lámina de inducción la columna dice "pares de polos" pero los valores corresponden al número de polos. La app usa las relaciones correctas y lo explica en las lecciones.
 
+## Redes Reels (carpeta `redes/`)
+
+App aparte para **Redes Computacionales e Industriales** (Certamen 2 y 3: Ethernet Industrial, Profinet, Profibus, Modbus, Fieldbus, HART, AS-i y DCS), en formato reels con voz narradora, videos de fondo, niveles, simulacros de 70 minutos, stickers de reacción y trofeos. Se abre en `/redes/` o desde la tarjeta 📡 en el selector de materia.
+
+Conserva su propia interfaz y su progreso local (niveles, stickers, XP del juego en este navegador), y **comparte con Máquinas Rush solo la cuenta, las cartas y el ranking** desde la pestaña 🌐 **Comunidad** ([`redes/comunidad.js`](redes/comunidad.js)):
+
+- **Cuenta**: mismo login de Supabase. Como está en el mismo dominio, si ya entraste en Máquinas Rush, Redes reconoce la sesión sola. Las cuentas nuevas se crean en Máquinas Rush (ahí se elige decente/indecente).
+- **Ranking y XP**: cada respuesta de Redes se envía en lotes con `grant_study` (`mcq` para alternativas/V-F/speed/jefes, `dev` para desarrollo autocorregido) y cada simulacro de 70 min con `submit_exam` en modo `desarrollo` (no cambia la mejor nota de alternativas). Aplican los mismos topes del servidor.
+- **Cartas y sobres**: colección, premio diario y apertura de sobres con `claim_daily` y `open_pack` (el azar sigue en el servidor). Venta, mercado e intercambios se hacen en Máquinas Rush.
+- No requiere cambios en `schema.sql`.
+
 ## Decentes e indecentes
 
 - Al crear la cuenta se pregunta si la persona es **decente** o **indecente**. Para elegir indecente hay que marcar que se tiene 18 años o más.
