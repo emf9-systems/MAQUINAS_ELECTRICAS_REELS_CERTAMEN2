@@ -373,6 +373,10 @@ canvas#fx{position:fixed;inset:0;z-index:66;pointer-events:none}
 .cm-card{position:relative;aspect-ratio:3/4;padding:0;border-radius:12px;overflow:hidden;border:2px solid var(--rc);background:var(--card2);cursor:pointer;box-shadow:0 0 12px color-mix(in srgb,var(--rc) 35%,transparent)}
 .cm-card img{width:100%;height:100%;object-fit:cover;display:block}
 .cm-blur img,.cm-blur-img{filter:blur(14px)}
+.cm-lock{cursor:default;box-shadow:none;opacity:.75}
+.cm-lock img{filter:brightness(0) saturate(0);opacity:.5}
+.cm-lock .cm-rar{opacity:.7}
+#ava{cursor:pointer}
 .cm-rar{position:absolute;left:4px;top:4px;font:700 10px var(--f-mono);background:var(--rc);color:#0b0912;padding:1px 6px;border-radius:6px}
 .cm-q{position:absolute;right:4px;top:4px;font:700 11px var(--f-mono);background:rgba(0,0,0,.7);padding:1px 5px;border-radius:6px;color:#fff}
 .cm-nm{position:absolute;left:0;right:0;bottom:0;font:800 11px var(--f-body);background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;padding:12px 4px 4px;text-align:center;line-height:1.15}
@@ -390,34 +394,28 @@ canvas#fx{position:fixed;inset:0;z-index:66;pointer-events:none}
       <div style="flex:1;min-width:0">
         <h1>Redes <em>Reels</em></h1>
         <div class="bar"><i id="h-lvbar"></i></div>
-        <div class="chips"><span class="chip l">NV <b id="h-lv">1</b></span><span class="chip">XP <b id="h-xp">0</b></span><span class="chip">🪙 <b id="h-coins">0</b></span><span class="chip t">🎟️ <b id="h-tix">0</b></span><button class="chip cm-chip" id="h-acc" type="button" hidden></button></div>
+        <div class="chips"><span class="chip l">NV <b id="h-lv">1</b></span><span class="chip">XP <b id="h-xp">0</b></span><button class="chip cm-chip" id="h-acc" type="button">🌐 <b>Entrar</b></button></div>
       </div>
     </div>
 
     <div class="pane" id="p-home">
       <div style="display:grid;gap:14px">
-        <div class="daily" id="daily" hidden><img src="stk/n20.gif" alt=""><div><b id="daily-t">Bono diario: +20 🪙</b><span class="note">Vuelve mañana por otro.</span></div></div>
+        <div class="daily" id="daily" hidden><img src="stk/n20.gif" alt=""><div><b id="daily-t">Premio diario</b><span class="note">Vuelve mañana por otro.</span></div></div>
         <div class="sec"><h2 class="c3head">Certamen 3 <span class="new">NUEVO</span></h2><p class="note" style="margin:0 0 8px">Modbus + Fieldbus, HART + AS-i, DCS y un ensayo con la estructura de la prueba (alternativas, cortas y laboratorio con dibujo).</p><div class="lvgrid" id="lvgrid3"></div><button class="bigbtn" id="b-sim" type="button" style="--c:var(--xp);margin-top:8px;border-color:var(--xp)"><span class="ic">📝</span><div><b>Simulacros de certamen · 70 min</b><span>3 pruebas completas con la estructura de la profe: alternativas, cortas y laboratorio. Cronómetro, pauta y nota.</span></div></button></div>
         <div class="sec"><h2>Certamen 2 <small>A = banco 1 · B = banco 2</small></h2><div class="lvgrid" id="lvgrid"></div></div>
         <button class="bigbtn hot" id="b-mix" type="button"><span class="ic">🌀</span><div><b>Mezcla</b><span>Elige niveles y se revuelven las preguntas. Prioriza las nuevas y las que fallaste.</span></div></button>
         <button class="bigbtn" id="b-rev" type="button" style="--c:var(--bad)"><span class="ic">🔁</span><div><b>Repasar fallos <span id="revn" style="color:var(--bad)">(0)</span></b><span>Solo las preguntas que tienes malas. Acertarlas da XP de revancha.</span></div></button>
-        <p class="note">Tu progreso se guarda en este navegador: preguntas acertadas y falladas, monedas, stickers y trofeos. Una pregunta que ya dominas da menos XP si la repites; una que habías fallado da XP de revancha.</p>
+        <p class="note">Tu avance de estudio (preguntas acertadas y falladas, niveles, trofeos) se guarda en este navegador. Las monedas 💰, las cartas, los sobres y el ranking son los de tu cuenta de Máquinas Rush: entra en 🌐 Comunidad.</p>
       </div>
     </div>
 
     <div class="pane" id="p-col" hidden>
-      <div class="sec"><h2>Colección <small id="colcount"></small></h2>
-        <div class="filt" id="colfilt"></div>
-        <p class="note">Toca uno que tengas para verlo en grande o ponerlo de avatar. Los stickers que consigues también aparecen como reacciones cuando aciertas.</p>
-        <div class="sgrid" id="sgrid"></div>
-      </div>
+      <div class="sec"><h2>Colección <small id="colcount">cartas de Máquinas Rush</small></h2><div id="cm-colpane"></div></div>
     </div>
 
     <div class="pane" id="p-shop" hidden>
-      <div class="sec"><h2>Tienda <small>gasta monedas y boletos</small></h2>
-        <div class="packs" id="packs"></div>
-        <div class="sec" style="margin-top:14px"><h2>Boletos 🎟️</h2><p class="note">Cada nivel que terminas por primera vez te da un boleto. En la Colección, toca un sticker bloqueado para canjearlo: común o raro cuesta 1 boleto, épico 3. Los legendarios solo salen en sobres o trofeos.</p></div>
-        <div class="sec"><h2>Cómo ganar monedas</h2><p class="note">Pregunta nueva acertada +3 · revancha +2 · nivel terminado +40 (repetido +10) · jefe sin fallar +30 · cofres · trofeos · bono diario +20. Los stickers repetidos se convierten en monedas.</p></div>
+      <div class="sec"><h2>Sobres <small>los mismos de Máquinas Rush</small></h2><div id="cm-shoppane"></div>
+        <div class="sec" style="margin-top:14px"><h2>Cómo ganar monedas 💰</h2><p class="note">Las paga el servidor de la cuenta, igual que en Máquinas Rush: cada alternativa correcta, cada desarrollo marcado como «La clavé», cada simulacro de 70 min guardado, el premio diario y cada nivel de cuenta que subes. Vender repetidas y el mercado están en Máquinas Rush.</p></div>
       </div>
     </div>
 
@@ -442,7 +440,7 @@ canvas#fx{position:fixed;inset:0;z-index:66;pointer-events:none}
 <nav class="tabs" id="tabs"><div class="in">
   <button class="tab" data-p="home" aria-selected="true" type="button"><span class="e">🏠</span>Inicio</button>
   <button class="tab" data-p="col" aria-selected="false" type="button"><span class="e">🖼️</span>Colección</button>
-  <button class="tab" data-p="shop" aria-selected="false" type="button"><span class="e">🛍️</span>Tienda</button>
+  <button class="tab" data-p="shop" aria-selected="false" type="button"><span class="e">🛍️</span>Sobres</button>
   <button class="tab" data-p="lib" aria-selected="false" type="button"><span class="e">📚</span>Biblioteca</button>
   <button class="tab" data-p="tro" aria-selected="false" type="button"><span class="e">🏆</span>Trofeos</button>
   <button class="tab" data-p="com" aria-selected="false" type="button"><span class="e">🌐</span>Comunidad</button>
@@ -458,7 +456,7 @@ canvas#fx{position:fixed;inset:0;z-index:66;pointer-events:none}
       <span class="spacer"></span>
       <span class="chip">XP <b id="xp">0</b></span>
       <span class="chip combo" id="comboChip">🔥 <b id="combo">0</b></span>
-      <span class="chip">🪙 <b id="coins">0</b></span>
+      <span class="chip">💰 <b id="coins">—</b></span>
       <button class="ibtn" id="snd2" type="button" aria-label="Efectos">🔊</button><button class="ibtn pbtn" id="pfab" type="button" aria-label="Pausar">⏸</button>
     </div>
   </div></div>
@@ -1082,48 +1080,6 @@ function exResults(E){const st=S.ex[E.id];st.gII=st.gII||{};st.gIII=st.gIII||{};
 const AUD_DUR={"c0": 12.17, "c1": 13.73, "c2": 17.06, "c3": 6.77, "w3": 8.83, "c4": 21.02, "c5": 14.9, "c6": 4.56, "e6": 7.37, "c7": 4.18, "e7": 4.66, "c8": 4.01, "e8": 5.09, "c9": 6.38, "w9": 9.46, "c10": 14.06, "c11": 6.17, "c12": 13.1, "c13": 3.58, "e13": 4.7, "c14": 17.18, "c15": 10.9, "c16": 5.28, "w16": 11.42, "c17": 17.38, "c18": 13.99, "c19": 4.37, "w19": 9.62, "c20": 15.62, "c21": 4.25, "e21": 5.09, "c22": 8.9, "c23": 4.01, "w23": 10.39, "c24": 11.86, "c25": 10.32, "c26": 13.32, "c27": 12.84, "c28": 13.8, "c29": 5.62, "e29": 4.13, "c30": 4.61, "w30": 10.08, "c31": 11.23, "c32": 3.5, "e32": 3.48, "c33": 13.75, "c34": 18.19, "c35": 4.13, "e35": 1.78, "c36": 5.78, "e36": 4.61, "c37": 4.87, "e37": 4.42, "c38": 5.57, "w38": 7.75, "c39": 10.56, "c40": 13.78, "c41": 17.54, "c42": 5.86, "e42": 4.18, "c43": 18.94, "c44": 5.64, "e44": 4.27, "c45": 15.55, "c46": 2.93, "c47": 4.78, "c48": 8.06, "c49": 15.7, "c50": 6.74, "c51": 3.77, "e51": 4.58, "c52": 12.36, "c53": 5.16, "e53": 5.83, "c54": 4.73, "w54": 11.18, "c55": 12.6, "c56": 4.22, "w56": 8.93, "c57": 15.65, "c58": 3.72, "e58": 2.23, "c59": 3.89, "w59": 10.85, "c60": 15.1, "c61": 4.73, "e61": 2.02, "c62": 3.96, "e62": 2.21, "c63": 11.09, "c64": 19.44, "c65": 2.52, "e65": 4.39, "c66": 6.19, "e66": 6.46, "c67": 5.26, "w67": 9.96, "c68": 12.31, "c69": 3.22, "e69": 2.81, "c70": 9.05, "c71": 4.94, "w71": 9.53, "c72": 8.11, "c73": 7.61, "c74": 5.76, "c75": 11.52, "c76": 4.25, "w76": 9.84, "c77": 4.18, "e77": 5.04, "c78": 2.93, "c79": 4.39, "c80": 8.62, "c81": 17.38, "c82": 3.98, "e82": 3.07, "c83": 16.75, "c84": 13.18, "c85": 20.93, "c86": 4.51, "e86": 7.66, "c87": 4.44, "e87": 2.95, "c88": 3.6, "w88": 10.87, "c89": 3.86, "w89": 10.73, "c90": 12.96, "c91": 12.89, "c92": 3.96, "e92": 2.54, "c93": 4.75, "w93": 9.36, "c94": 11.3, "c95": 12.41, "c96": 3.65, "e96": 4.7, "c97": 4.66, "e97": 4.58, "c98": 4.56, "w98": 10.03, "c99": 12.86, "c100": 13.97, "c101": 3.98, "e101": 2.45, "c102": 12.31, "c103": 15.91, "c104": 12.5, "c105": 4.63, "e105": 1.08, "c106": 12.72, "c107": 6.48, "w107": 12.74, "c108": 9.91, "c109": 10.34, "c110": 3.74, "e110": 2.98, "c111": 11.76, "c112": 4.22, "e112": 1.78, "c113": 14.66, "c114": 10.94, "c115": 5.18, "w115": 10.08, "c116": 15.05, "c117": 5.16, "e117": 1.51, "c118": 4.27, "e118": 1.58, "c119": 13.92, "c120": 3.46, "e120": 3.84, "c121": 10.56, "c122": 8.02, "c123": 4.2, "w123": 10.46, "c124": 15.22, "c125": 13.82, "c126": 14.3, "c127": 12.19, "c128": 12.36, "c129": 4.25, "e129": 6.0, "c130": 5.69, "e130": 1.34, "c131": 3.05, "w131": 10.66, "c132": 4.85, "e132": 3.98, "c133": 3.26, "c134": 5.35, "c135": 6.22, "b1B_0": 9.98, "b1B_1": 3.5, "b1B_2": 3.46, "b1B_3": 5.86, "b1B_4": 3.94, "b1B_5": 3.62, "b1B_6": 4.68, "b1B_7": 16.37, "b1B_8": 5.11, "b1B_9": 5.21, "b1B_10": 4.58, "b1B_11": 4.73, "bw1B_12": 7.63, "b1B_12": 5.81, "b1B_13": 6.05, "b1B_14": 4.37, "b1B_15": 4.82, "b1B_16": 5.3, "b1B_17": 3.58, "b1B_18": 4.3, "b1B_19": 4.22, "b1B_20": 3.67, "b1B_21": 5.3, "bw1B_22": 10.01, "b1B_22": 4.01, "b1B_23": 5.26, "b1B_24": 4.78, "bw1B_25": 8.71, "b1B_25": 4.8, "b1B_26": 34.87, "b1B_27": 4.56, "b1B_28": 5.74, "b1B_29": 5.74, "bw1B_30": 12.6, "b1B_30": 6.46, "b1B_31": 19.39, "b1B_32": 5.95, "b1B_33": 3.82, "b1B_34": 4.25, "b1B_35": 3.24, "bw1B_36": 8.4, "b1B_36": 5.04, "bw1B_37": 8.74, "b1B_37": 5.4, "b1B_38": 2.93, "b1B_39": 4.63, "b2B_0": 8.18, "b2B_1": 3.14, "b2B_2": 3.1, "b2B_3": 4.8, "b2B_4": 4.51, "b2B_5": 4.15, "b2B_6": 4.18, "b2B_7": 3.96, "bw2B_8": 12.1, "b2B_8": 5.06, "b2B_9": 21.05, "b2B_10": 3.55, "b2B_11": 3.36, "b2B_12": 4.01, "bw2B_13": 8.95, "b2B_13": 4.61, "b2B_14": 2.88, "b2B_15": 3.82, "bw2B_16": 8.9, "b2B_16": 4.42, "b2B_17": 3.62, "b2B_18": 3.72, "b2B_19": 4.99, "b2B_20": 4.9, "b2B_21": 4.1, "bw2B_22": 9.26, "b2B_22": 4.42, "b2B_23": 2.86, "bw2B_24": 9.34, "b2B_24": 4.27, "b2B_25": 4.51, "bw2B_26": 7.39, "b2B_26": 4.2, "b2B_27": 4.18, "b2B_28": 4.1, "b2B_29": 3.17, "b2B_30": 5.28, "b2B_31": 2.78, "b2B_32": 2.93, "b2B_33": 4.44, "b3B_0": 9.1, "b3B_1": 2.74, "b3B_2": 6.19, "b3B_3": 3.84, "b3B_4": 3.1, "bw3B_5": 9.07, "b3B_5": 3.58, "b3B_6": 4.44, "b3B_7": 2.98, "b3B_8": 5.69, "b3B_9": 5.18, "b3B_10": 3.72, "b3B_11": 20.88, "b3B_12": 5.06, "b3B_13": 4.58, "b3B_14": 3.55, "bw3B_15": 9.74, "b3B_15": 4.92, "b3B_16": 6.02, "b3B_17": 5.21, "b3B_18": 8.33, "bw3B_19": 8.78, "b3B_19": 4.97, "b3B_20": 21.07, "b3B_21": 3.98, "b3B_22": 5.5, "b3B_23": 4.75, "b3B_24": 3.79, "b3B_25": 4.34, "bw3B_26": 9.96, "b3B_26": 4.34, "b3B_27": 4.58, "b3B_28": 3.53, "b3B_29": 2.83, "b3B_30": 4.75, "b3B_31": 4.46, "b3B_32": 4.8, "bw3B_33": 9.26, "b3B_33": 4.13, "b3B_34": 4.42, "b3B_35": 3.84, "b3B_36": 4.99, "b3B_37": 5.28, "bw3B_38": 8.5, "b3B_38": 4.75, "b3B_39": 4.13, "b3B_40": 4.8, "b3B_41": 2.93, "b3B_42": 4.22};
 </script>
 <script>
-/* ======================= CATÁLOGO DE STICKERS ======================= */
-const STK=[
-["ok_griddy","img/ok_griddy.gif","Miku griddy","Vocaloid","R"],["ok_miku67","img/ok_miku67.gif","Miku 67","Vocaloid","R"],["ok_ritsuheart","img/ok_ritsuheart.gif","Ritsu corazón","K-On","R"],
-["ok_kita","img/ok_kita.gif","Kita brillando","Bocchi the Rock","R"],["ok_azunyan","img/ok_azunyan.gif","Azunyan gatita","K-On","R"],["ok_mio","img/ok_mio.gif","Mio feliz","K-On","R"],
-["ok_teto","img/ok_teto.gif","Teto","Vocaloid","C"],["ok_teto1","img/ok_teto1.gif","Teto bailando","Vocaloid","R"],["ok_teto2","img/ok_teto2.gif","Teto mini","Vocaloid","C"],
-["ok_tetoplush","img/ok_tetoplush.gif","Teto peluche","Vocaloid","R"],["ok_tetocat","img/ok_tetocat.gif","Teto gato","Vocaloid","E"],["ok_tetochibi","img/ok_tetochibi.gif","Teto boceto","Vocaloid","C"],
-["ok_azunyan2","img/ok_azunyan2.gif","Azunyan en el club","K-On","R"],["ok_mugi","img/ok_mugi.gif","Mugi","K-On","R"],
-["bad_bwaaa","img/bad_bwaaa.gif","Bocchi bwaaa","Bocchi the Rock","E"],["bad_melt","img/bad_melt.gif","Bocchi derretida","Bocchi the Rock","E"],["bad_stairs","img/bad_stairs.gif","Bocchi en la escalera","Bocchi the Rock","R"],
-["bad_idk","img/bad_idk.gif","Yui no sabe qué hacer","K-On","R"],["combo_ritsu","img/combo_ritsu.gif","Ritsu girando","K-On","E"],["lvl_trio","img/lvl_trio.gif","Trío de peluches","Vocaloid","E"],
-["chest_pear","img/chest_pear.gif","Teto pera","Vocaloid","R"],["chest_pear2","img/chest_pear2.gif","Teto pera mini","Vocaloid","C"],["pause_yui","img/pause_yui.gif","Yui comiendo","K-On","C"],
-["pause_mugi","img/pause_mugi.gif","Mugi pixel","K-On","C"],["ojo_yui","img/ojo_yui.gif","Yui: ¡atención!","K-On","R"],
-["f_omg","img/f_omg.webp","¡Wow!","Love Live","C"],["f_kotoriomg","img/f_kotoriomg.webp","Kotori sorprendida","Love Live","C"],["f_yoshiko","img/f_yoshiko.webp","Yoshiko","Love Live","C"],
-["f_maki","img/f_maki.webp","Maki pensativa","Love Live","C"],["f_makiangry","img/f_makiangry.webp","Maki enojada","Love Live","C"],["f_nozomiwink","img/f_nozomiwink.webp","Nozomi guiñando","Love Live","C"],
-["f_nozomi","img/f_nozomi.webp","Nozomi","Love Live","C"],["f_rinsonic","img/f_rinsonic.webp","Rin y Sonic","Love Live","R"],["f_nicocat","img/f_nicocat.webp","Nico neko","Love Live","R"],
-["f_nico","img/f_nico.webp","Nico idol","Love Live","R"],["f_makiumbrella","img/f_makiumbrella.webp","Maki con paraguas","Love Live","C"],["m_kotori","img/m_kotori.webp","Kotori","Love Live","C"],
-["m_nozomi","img/m_nozomi.webp","Nozomi de uniforme","Love Live","C"],["m_rin2","img/m_rin2.webp","Rin saludando","Love Live","C"],["m_honoka","img/m_honoka.webp","Honoka","Love Live","C"],
-["m_rin","img/m_rin.webp","Rin","Love Live","C"],["m_bocchi","img/m_bocchi.webp","Bocchi","Bocchi the Rock","R"],["m_bocchimaid","img/m_bocchimaid.webp","Bocchi maid","Bocchi the Rock","E"],
-["n01","stk/n01.gif","Mugi señalando","K-On","R"],["n02","stk/n02.gif","Mio asustada","K-On","R"],["n03","stk/n03.gif","Yui llorando","K-On","R"],["n04","stk/n04.gif","Yui en su pieza","K-On","R"],
-["n05","stk/n05.gif","Yui en shock","K-On","R"],["n06","stk/n06.gif","Mio y Ritsu","K-On","R"],["n07","stk/n07.gif","Ritsu y Mugi","K-On","R"],["n08","stk/n08.gif","Mio de cerca","K-On","R"],
-["n09","stk/n09.gif","Azusa","K-On","R"],["n10","stk/n10.gif","Azusa y la torta","K-On","R"],["n11","stk/n11.gif","Mio maid","K-On","E"],["n12","stk/n12.gif","Azunyan burbujas","K-On","E"],
-["n13","stk/n13.gif","Azunyan orejas de gato","K-On","R"],["n14","stk/n14.webp","Logo Bocchi the Rock","Bocchi the Rock","C"],["n15","stk/n15.webp","Póster de la película","Bocchi the Rock","L"],
-["n16","stk/n16.webp","Kessoku Band","Bocchi the Rock","E"],["n17","stk/n17.webp","Kita y la banda","Bocchi the Rock","R"],["n18","stk/n18.gif","Bocchi","Bocchi the Rock","E"],
-["n19","stk/n19.gif","Bocchi de pie","Bocchi the Rock","R"],["n20","stk/n20.gif","Bocchi feliz","Bocchi the Rock","E"],["n21","stk/n21.gif","Bocchi contenta","Bocchi the Rock","R"],
-["n22","stk/n22.gif","Bocchi glitch","Bocchi the Rock","L"],["n23","stk/n23.gif","Los ojos de Bocchi","Bocchi the Rock","L"],["n24","stk/n24.webp","Yui sorprendida","K-On","C"],
-["n25","stk/n25.webp","Yui con tostada","K-On","C"],["n26","stk/n26.gif","Bocchi bailando","Bocchi the Rock","L"],["n27","stk/n27.webp","Bocchi: gracias","Bocchi the Rock","R"],
-["n28","stk/n28.webp","Bocchi en el escenario","Bocchi the Rock","R"],["n29","stk/n29.webp","Mio bajista","K-On","R"],["n30","stk/n30.webp","Mio Cagayake","K-On","C"],
-["n31","stk/n31.webp","Mugi Cagayake","K-On","C"],["n32","stk/n32.webp","Yui Cagayake","K-On","C"],["n33","stk/n33.webp","Ritsu Cagayake","K-On","C"],
-["n34","stk/n34.webp","K-On estrellas","K-On","E"],["n35","stk/n35.webp","Yui en rojo","K-On","C"],["n36","stk/n36.webp","K-On en grupo","K-On","C"],
-["n37","stk/n37.webp","Azusa casual","K-On","C"],["n38","stk/n38.webp","Azunyan","K-On","C"],["n39","stk/n39.webp","K-On en la sala","K-On","R"],
-["n40","stk/n40.gif","Love Live en el escenario","Love Live","E"],["n41","stk/n41.gif","Kotori riendo","Love Live","E"],["n42","stk/n42.gif","µ's en grupo","Love Live","E"],
-["n43","stk/n43.gif","Love Live a la carrera","Love Live","E"],["n44","stk/n44.gif","Nozomi con lentes","Love Live","E"],["n45","stk/n45.webp","K-On con instrumentos","K-On","C"],
-["n46","stk/n46.webp","Yui y Ui","K-On","C"],["n47","stk/n47.webp","K-On de invierno","K-On","C"],["n48","stk/n48.webp","K-On en poleras","K-On","C"],
-["n49","stk/n49.webp","K-On en Londres","K-On","L"],["n50","stk/n50.webp","K-On en el café","K-On","R"]
-].map(([id,f,n,s,r])=>({id,f,n,s,r}));
-const STKM=Object.fromEntries(STK.map(s=>[s.id,s]));
-const RN={C:"Común",R:"Rara",E:"Épica",L:"Legendaria"};
-const DUPV={C:5,R:12,E:30,L:80};
-const PACKS=[
- {id:"basic",n:"Sobre básico",d:"1 sticker",cost:60,cnt:1,w:{C:64,R:28,E:7,L:1},pc:"var(--rr)",art:"BÁSICO"},
- {id:"plus",n:"Sobre plus",d:"3 stickers, al menos 1 raro o mejor",cost:150,cnt:3,w:{C:50,R:35,E:12,L:3},pc:"var(--re)",art:"PLUS ×3",guar:true},
- {id:"gold",n:"Sobre dorado",d:"1 sticker épico o legendario",cost:400,cnt:1,w:{C:0,R:0,E:85,L:15},pc:"var(--rl)",art:"DORADO"}
-];
 const TRO=[
  {id:"first",e:"🎬",n:"Primer paso",d:"Termina tu primer nivel",c:30},
  {id:"reel",e:"📱",n:"Modo reel",d:"Activa el modo reel (voz + autoplay)",c:20},
@@ -1135,7 +1091,7 @@ const TRO=[
  {id:"eth",e:"🔵",n:"Maestro de Ethernet",d:"Termina 1A y 1B",c:60},
  {id:"pn",e:"🟢",n:"Maestro de Profinet",d:"Termina 2A y 2B",c:60},
  {id:"pb",e:"🟣",n:"Maestro de Profibus",d:"Termina 3A y 3B",c:60},
- {id:"all",e:"🎓",n:"Graduado",d:"Termina los 6 niveles (premio: K-On en Londres, legendario)",c:200,s:"n49"},
+ {id:"all",e:"🎓",n:"Graduado",d:"Termina los 6 niveles del Certamen 2",c:200},
  {id:"cert3",e:"📝",n:"Listo para el Certamen 3",d:"Termina 4A, 5A, 6A y el ensayo C3",c:120},
  {id:"sim",e:"⏱️",n:"Primer simulacro",d:"Entrega y guarda la nota de un simulacro de 70 min",c:40},
  {id:"sim3",e:"🎯",n:"Triple ensayo",d:"Termina los 3 simulacros del Certamen 3",c:120},
@@ -1145,10 +1101,10 @@ const TRO=[
  {id:"lib10",e:"📖",n:"Ratón de biblioteca",d:"Desbloquea 10 respuestas modelo",c:30},
  {id:"liball",e:"📚",n:"Bibliotecario",d:"Desbloquea todas las respuestas modelo",c:150},
  {id:"mix",e:"🌀",n:"Licuadora",d:"Termina una mezcla",c:25},
- {id:"stk10",e:"🖼️",n:"Coleccionista",d:"Consigue 10 stickers",c:30},
- {id:"stk40",e:"🗂️",n:"Medio álbum",d:"Consigue 40 stickers",c:80},
- {id:"stkall",e:"🏅",n:"Completista",d:"Consigue todos los stickers",c:300},
- {id:"leg",e:"🌟",n:"¡Legendario!",d:"Consigue un sticker legendario",c:50},
+ {id:"stk10",e:"🖼️",n:"Coleccionista",d:"Ten 10 cartas distintas en tu cuenta",c:30},
+ {id:"stk40",e:"🗂️",n:"Medio álbum",d:"Ten 40 cartas distintas en tu cuenta",c:80},
+ {id:"stkall",e:"🏅",n:"Completista",d:"Completa todas las cartas de tu tipo de cuenta",c:300},
+ {id:"leg",e:"🌟",n:"¡Legendario!",d:"Ten una carta Legendaria o Mítica",c:50},
  {id:"lv10",e:"⭐",n:"Nivel 10",d:"Llega al nivel 10 de jugador",c:60}
 ];
 
@@ -1203,17 +1159,16 @@ function nextBanner(){const it=bnQ.shift();if(!it){bnBusy=false;return}bnBusy=tr
 const IMGS={bad:["img/bad_bwaaa.gif","img/bad_melt.gif","img/bad_stairs.gif","img/bad_idk.gif","stk/n03.gif","stk/n05.gif"],
  baseOk:["img/ok_griddy.gif","img/ok_miku67.gif","img/ok_ritsuheart.gif","img/ok_kita.gif","img/ok_azunyan.gif","img/ok_mio.gif","img/ok_teto.gif","img/ok_teto1.gif","img/ok_teto2.gif","img/ok_tetoplush.gif","img/ok_tetocat.gif","img/ok_tetochibi.gif","img/ok_azunyan2.gif","img/ok_mugi.gif"],
  cam:["img/f_omg.webp","img/f_kotoriomg.webp","img/f_yoshiko.webp","img/f_maki.webp","img/f_makiangry.webp","img/f_nozomiwink.webp","img/f_nozomi.webp","img/f_rinsonic.webp","img/f_nicocat.webp","img/f_nico.webp","img/f_makiumbrella.webp","img/m_kotori.webp","img/m_nozomi.webp","img/m_rin2.webp","img/m_honoka.webp"]};
-function okPool(){const own=STK.filter(s=>S.stk[s.id]&&s.f.endsWith(".gif")&&!s.id.startsWith("bad_")).map(s=>s.f);return [...new Set([...IMGS.baseOk,...own])]}
+function okPool(){const own=window.RC&&RC.reactionPool?RC.reactionPool():[];return [...new Set([...IMGS.baseOk,...own])]}
 let stT=0,lastOk="";
 function sticker(kind,file){const el=$("#sticker");let f=file;if(!f){if(kind==="bad")f=pick(IMGS.bad);else{const pool=okPool();do{f=pick(pool)}while(pool.length>1&&f===lastOk);lastOk=f}}
   el.className="sticker "+(kind==="bad"?"bad":kind==="gold"?"gold":"");el.src=f;void el.offsetWidth;el.classList.add("show");clearTimeout(stT);stT=setTimeout(()=>el.classList.remove("show"),kind==="gold"?2600:1900)}
 
 /* ======================= PROGRESO / RECOMPENSAS ======================= */
 function addXP(n,el){const before=LVL(S.xp);S.xp+=n;if(el&&n)floatTxt("+"+n+" XP",el);if(LVL(S.xp)>before){setTimeout(()=>{toast("NIVEL "+LVL(S.xp),"var(--eth)");sticker("gold","img/lvl_trio.gif");confetti(120);SFX.lvl();clip("guitarist");buzz([30,40,30,40,80]);checkTro()},350)}hudUpd();save()}
-function addCoins(n,el){if(!n)return;S.coins+=n;if(el)setTimeout(()=>floatTxt("+"+n+" 🪙",el,"var(--xp)"),220);SFX.coin();hudUpd();save()}
-function stkCount(){return STK.filter(s=>S.stk[s.id]).length}
-function giveSticker(id,quiet){const had=!!S.stk[id];S.stk[id]=(S.stk[id]||0)+1;const s=STKM[id];let refund=0;if(had){refund=DUPV[s.r];S.coins+=refund}save();if(!quiet&&!had)banner("🖼️","Nuevo sticker: "+s.n,RN[s.r]+" · "+s.s);checkTro();return {had,refund}}
-function unlockTro(id){if(S.tro[id])return;const t=TRO.find(x=>x.id===id);if(!t)return;S.tro[id]=Date.now();S.coins+=t.c;save();banner(t.e,"Trofeo: "+t.n,"+"+t.c+" 🪙 · "+t.d);clip("guitarist");confetti(60);if(t.s&&!S.stk[t.s]){giveSticker(t.s,true);banner("🌟","Premio: "+STKM[t.s].n,"Sticker legendario")}hudUpd()}
+/* Las monedas son las de la cuenta (las paga el servidor vía RC.study). Aquí solo queda el sonido. */
+function addCoins(n,el){if(!n)return;SFX.coin()}
+function unlockTro(id){if(S.tro[id])return;const t=TRO.find(x=>x.id===id);if(!t)return;S.tro[id]=Date.now();save();banner(t.e,"Trofeo: "+t.n,"+"+t.c+" XP · "+t.d);addXP(t.c);clip("guitarist");confetti(60);hudUpd()}
 function lvDone(L){return S.lv[L]&&S.lv[L].done}
 function checkTro(){
   if(S.best>=5)unlockTro("c5");if(S.best>=10)unlockTro("c10");if(S.best>=20)unlockTro("c20");
@@ -1223,8 +1178,8 @@ function checkTro(){
   if(Object.values(S.boss).some(b=>b==="perfect"))unlockTro("boss1");if(OLD6.every(L=>S.boss[L]))unlockTro("bossall");
   if(S.right>=50)unlockTro("r50");if(S.right>=200)unlockTro("r200");if(S.rev>=10)unlockTro("rev10");
   const nl=Object.keys(S.lib).length;if(nl>=10)unlockTro("lib10");if(nl>=WRITES.length)unlockTro("liball");
-  if(S.mixes>=1)unlockTro("mix");const sc=stkCount();if(sc>=10)unlockTro("stk10");if(sc>=40)unlockTro("stk40");if(sc>=STK.length)unlockTro("stkall");
-  if(STK.some(s=>s.r==="L"&&S.stk[s.id]))unlockTro("leg");if(LVL(S.xp)>=10)unlockTro("lv10");
+  if(S.mixes>=1)unlockTro("mix");const cs=window.RC&&RC.cardStats?RC.cardStats():null;if(cs){if(cs.own>=10)unlockTro("stk10");if(cs.own>=40)unlockTro("stk40");if(cs.own>=cs.total&&cs.total)unlockTro("stkall");if(cs.leg)unlockTro("leg")}
+  if(LVL(S.xp)>=10)unlockTro("lv10");
 }
 /* memoria por pregunta: r=aciertos, w=fallos, l=último resultado (1 bien, 0 mal) */
 function memOf(uid){return S.q[uid]||null}
@@ -1235,7 +1190,7 @@ function scoreQ(uid,ok){const r=S.q[uid]||{r:0,w:0,l:-1};let xp=0,coins=0,tag=""
 
 /* ======================= HUB ======================= */
 function hubUpd(){
-  $("#ava").src=(STKM[S.avatar]||STK[0]).f;$("#h-lv").textContent=LVL(S.xp);$("#h-xp").textContent=S.xp;$("#h-coins").textContent=S.coins;$("#h-tix").textContent=S.tix;$("#h-lvbar").style.width=((S.xp%150)/150*100)+"%";
+  $("#ava").src=(window.RC&&RC.avatarSrc&&RC.avatarSrc())||"img/m_bocchi.webp";$("#h-lv").textContent=LVL(S.xp);$("#h-xp").textContent=S.xp;if(window.RC)RC.hud();$("#h-lvbar").style.width=((S.xp%150)/150*100)+"%";
   $("#lvgrid").innerHTML="";$("#lvgrid3").innerHTML="";
   LVORDER.forEach(L=>{const g=$(NEW3.includes(L)?"#lvgrid3":"#lvgrid");const l=LV[L];const qs=l.cards.filter(c=>QTYPES.includes(c.t));const okc=qs.filter(c=>(S.q[c.uid]||{}).l===1).length;const bad=qs.filter(c=>(S.q[c.uid]||{}).l===0).length;
     const b=document.createElement("button");b.type="button";b.className="lv "+l.mod;
@@ -1244,38 +1199,12 @@ function hubUpd(){
   const nr=Object.keys(S.q).filter(u=>S.q[u].l===0&&ALLQ[u]).length;$("#revn").textContent="("+nr+")";
 }
 function showPane(p){document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.p===p?"true":"false"));document.querySelectorAll(".pane").forEach(x=>x.hidden=x.id!=="p-"+p);
-  if(p==="col")renderCol();if(p==="shop")renderShop();if(p==="lib")renderLib();if(p==="tro")renderTro();if(p==="com"&&window.RC)RC.render();if(p==="home")hubUpd();$("#hub").scrollTop=0;try{localStorage.setItem("rr6-tab",p)}catch(e){}}
+  if(p==="col"&&window.RC)RC.renderColPane($("#cm-colpane"));if(p==="shop"&&window.RC)RC.renderShopPane($("#cm-shoppane"));if(p==="lib")renderLib();if(p==="tro")renderTro();if(p==="com"&&window.RC)RC.render();if(p==="home")hubUpd();$("#hub").scrollTop=0;try{localStorage.setItem("rr6-tab",p)}catch(e){}}
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{SFX.tick();showPane(t.dataset.p)});
-let colF="all";
-function renderCol(){const f=$("#colfilt");f.innerHTML="";[["all","Todas"],["C","Comunes"],["R","Raras"],["E","Épicas"],["L","Legendarias"]].forEach(([k,n])=>{const b=document.createElement("button");b.type="button";b.textContent=n;b.setAttribute("aria-pressed",colF===k?"true":"false");b.onclick=()=>{colF=k;renderCol()};f.appendChild(b)});
-  $("#colcount").textContent=stkCount()+" / "+STK.length;
-  const g=$("#sgrid");g.innerHTML="";const order={L:0,E:1,R:2,C:3};
-  STK.filter(s=>colF==="all"||s.r===colF).sort((a,b)=>order[a.r]-order[b.r]).forEach(s=>{const own=S.stk[s.id]||0;const b=document.createElement("button");b.type="button";b.className="st r-"+s.r+(own?"":" lock");b.setAttribute("aria-label",own?s.n:"Sticker bloqueado, "+RN[s.r]);
-    b.innerHTML='<img loading="lazy" src="'+s.f+'" alt=""><span class="rr"></span>'+(own>1?'<span class="cnt">x'+own+'</span>':'');b.onclick=()=>stickerModal(s);g.appendChild(b)});}
 function openModal(html,color){const m=$("#modal"),b=$("#mbox");b.style.setProperty("--mc",color||"var(--line)");b.innerHTML=html;m.hidden=false;return b}
 function closeModal(){$("#modal").hidden=true}
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
-function stickerModal(s){const own=S.stk[s.id]||0;
-  if(own){const b=openModal('<span class="rbadge r-'+s.r+'">'+RN[s.r]+'</span><h3>'+s.n+'</h3><img class="big" src="'+s.f+'" alt="'+s.n+'"><p class="note">'+s.s+' · tienes '+own+(own>1?' copias':' copia')+'</p><div class="row"><button class="btn" id="m-ava" type="button">'+(S.avatar===s.id?'Es tu avatar ✓':'Usar como avatar')+'</button><button class="btn ghost" id="m-close" type="button">Cerrar</button></div>',"var(--r"+s.r.toLowerCase()+")");
-    b.querySelector(".rbadge").classList.add("r-"+s.r);b.querySelector("#m-ava").onclick=()=>{S.avatar=s.id;save();hubUpd();closeModal();toast("AVATAR LISTO","var(--xp)")};b.querySelector("#m-close").onclick=closeModal;if(s.r==="L")clip("tenshi");else if(s.r==="E")clip("laugh")}
-  else{const cost=s.r==="C"||s.r==="R"?1:s.r==="E"?3:0;
-    const b=openModal('<span class="rbadge r-'+s.r+'">'+RN[s.r]+'</span><h3>Bloqueado</h3><p class="note">'+s.s+'. Sale en sobres de la tienda.'+(cost?' También puedes canjearlo con '+cost+' 🎟️ (tienes '+S.tix+').':' Los legendarios no se canjean con boletos.')+'</p><div class="row">'+(cost?'<button class="btn" id="m-tix" type="button" '+(S.tix>=cost?'':'disabled')+'>Canjear por '+cost+' 🎟️</button>':'')+'<button class="btn ghost" id="m-close" type="button">Cerrar</button></div>');
-    b.querySelector("#m-close").onclick=closeModal;const t=b.querySelector("#m-tix");if(t)t.onclick=()=>{if(S.tix<cost)return;S.tix-=cost;giveSticker(s.id,true);closeModal();renderCol();hubUpd();revealOne(s,false)}}}
-function revealOne(s,dup){const b=openModal('<h3 style="text-align:center">¡Nuevo sticker!</h3><div class="reveal">'+rcardHTML(s,dup,0)+'</div><button class="btn" id="m-ok" type="button">Genial</button>',"var(--r"+s.r.toLowerCase()+")");setTimeout(()=>b.querySelector(".rcard").classList.add("open"),200);rarFx(s.r);b.querySelector("#m-ok").onclick=()=>{closeModal();renderCol()}}
-function rcardHTML(s,res,k){return '<div class="rcard r-'+s.r+'" data-k="'+k+'"><div class="in"><div class="bk">?</div><div class="fc"><img src="'+s.f+'" alt=""><div>'+s.n+' · '+RN[s.r]+'</div></div></div><div class="dup">'+(res&&res.had?'REPETIDO +'+res.refund+' 🪙':res?'¡NUEVO!':'')+'</div></div>'}
 function rarFx(r){if(r==="L"){clip("tenshi");confetti(220);toast("¡LEGENDARIO!","var(--rl)");buzz([60,60,60,60,200])}else if(r==="E"){clip("guitarist");confetti(120);toast("ÉPICO","var(--re)")}else if(r==="R"){clip("laugh");confetti(50)}else{clip("tortilla")}}
-function rollR(w){const tot=w.C+w.R+w.E+w.L;let x=Math.random()*tot;for(const k of ["C","R","E","L"]){if((x-=w[k])<0)return k}return "C"}
-function rollSticker(r){const pool=STK.filter(s=>s.r===r);const unowned=pool.filter(s=>!S.stk[s.id]);return Math.random()<.6&&unowned.length?pick(unowned):pick(pool)}
-function renderShop(){const w=$("#packs");w.innerHTML="";PACKS.forEach(p=>{const d=document.createElement("div");d.className="pack";d.style.setProperty("--pc",p.pc);
-  const odds=Object.entries(p.w).filter(([k,v])=>v).map(([k,v])=>RN[k]+" "+v+"%").join(" · ");
-  d.innerHTML='<div class="art">'+p.art+'</div><div><b>'+p.n+'</b><span class="note">'+p.d+'</span><div class="odds">'+odds+'</div></div><button class="buy" type="button" '+(S.coins>=p.cost?'':'disabled')+'>'+p.cost+' 🪙</button>';
-  d.querySelector(".buy").onclick=()=>openPack(p);w.appendChild(d)})}
-function openPack(p){if(S.coins<p.cost)return;S.coins-=p.cost;let rs=[];for(let i=0;i<p.cnt;i++)rs.push(rollR(p.w));if(p.guar&&rs.every(r=>r==="C"))rs[rs.length-1]="R";
-  const got=rs.map(r=>{const s=rollSticker(r);return {s,res:giveSticker(s.id,true)}});save();hubUpd();
-  const b=openModal('<h3 style="text-align:center">'+p.n+'</h3><p class="note" style="text-align:center">Toca cada carta para darla vuelta</p><div class="reveal">'+got.map((g,k)=>rcardHTML(g.s,g.res,k)).join("")+'</div><button class="btn" id="m-ok" type="button">Listo</button>',p.pc);
-  b.querySelectorAll(".rcard").forEach((el,k)=>{el.querySelector(".in").onclick=()=>{if(el.classList.contains("open"))return;el.classList.add("open");rarFx(got[k].s.r)}});
-  b.querySelector("#m-ok").onclick=()=>{b.querySelectorAll(".rcard:not(.open)").forEach(el=>el.classList.add("open"));closeModal();renderShop();checkTro()};
-  clip("tortilla")}
 function renderLib(){const w=$("#libwrap");w.innerHTML="";const n=Object.keys(S.lib).length;$("#libcount").textContent=n+" / "+WRITES.length;
   LVORDER.forEach(L=>{const l=LV[L];const ws=l.cards.filter(c=>c.t==="write");const sec=document.createElement("div");sec.className="libmod "+l.mod;sec.innerHTML='<h3>'+L+' · '+l.name+'</h3>';
     ws.forEach(c=>{const un=S.lib[c.uid];const d=document.createElement("div");d.className="libi"+(un?"":" lock");
@@ -1283,10 +1212,10 @@ function renderLib(){const w=$("#libwrap");w.innerHTML="";const n=Object.keys(S.
       d.innerHTML='<div class="lq">'+c.q+'</div><div class="la">'+(un?ans:'🔒 Respóndela en el nivel '+L+' para desbloquearla.')+'</div>'+(un?'<div class="lm"><span>'+c.a.split(/\s+/).length+' palabras</span><span>·</span><span>'+({g1:"La clavaste",g2:"Casi",g3:"No la tenías"}[un]||"")+'</span><span class="spacer"></span>'+(hasAud(c.waud)?'<button class="play" type="button">▶ Escuchar</button>':'')+'</div>':'');
       const pb=d.querySelector(".play");if(pb)pb.onclick=()=>{NA.src="aud/"+c.waud+".mp3?v=2";NA.currentTime=0;NA.play().catch(()=>{})};sec.appendChild(d)});w.appendChild(sec)})}
 function renderTro(){const w=$("#trowrap");w.innerHTML="";$("#trocount").textContent=Object.keys(S.tro).length+" / "+TRO.length;
-  [...TRO].sort((a,b)=>(S.tro[b.id]?1:0)-(S.tro[a.id]?1:0)).forEach(t=>{const d=document.createElement("div");d.className="tro"+(S.tro[t.id]?"":" lock");d.innerHTML='<span class="tm">'+t.e+'</span><div><b>'+t.n+'</b><span>'+t.d+'</span></div><span class="rw">'+(S.tro[t.id]?'✓':'+'+t.c+' 🪙')+'</span>';w.appendChild(d)});
+  [...TRO].sort((a,b)=>(S.tro[b.id]?1:0)-(S.tro[a.id]?1:0)).forEach(t=>{const d=document.createElement("div");d.className="tro"+(S.tro[t.id]?"":" lock");d.innerHTML='<span class="tm">'+t.e+'</span><div><b>'+t.n+'</b><span>'+t.d+'</span></div><span class="rw">'+(S.tro[t.id]?'✓':'+'+t.c+' XP')+'</span>';w.appendChild(d)});
   $("#b-snd").textContent="Efectos: "+(S.opt.sound?"sí":"no")}
 $("#b-snd").onclick=()=>{S.opt.sound=!S.opt.sound;save();renderTro();hudUpd()};
-$("#b-reset").onclick=()=>{const b=openModal('<h3>¿Borrar todo?</h3><p class="note">Se pierden XP, monedas, stickers, trofeos y el registro de preguntas. No se puede deshacer.</p><div class="row"><button class="btn" id="m-yes" type="button" style="background:var(--bad)">Sí, borrar</button><button class="btn ghost" id="m-no" type="button">Cancelar</button></div>');b.querySelector("#m-no").onclick=closeModal;b.querySelector("#m-yes").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
+$("#b-reset").onclick=()=>{const b=openModal('<h3>¿Borrar todo?</h3><p class="note">Se pierden la XP de Redes, los trofeos y el registro de preguntas de este navegador. Tu cuenta, tus monedas y tus cartas no se tocan. No se puede deshacer.</p><div class="row"><button class="btn" id="m-yes" type="button" style="background:var(--bad)">Sí, borrar</button><button class="btn ghost" id="m-no" type="button">Cancelar</button></div>');b.querySelector("#m-no").onclick=closeModal;b.querySelector("#m-yes").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
 
 /* mezcla */
 let mixSel=new Set(["4A","5A","6A","C3"]),mixF="nf",mixN=20;
@@ -1302,10 +1231,10 @@ function mixPool(){return Object.values(ALLQ).filter(c=>mixSel.has(c.lv)).filter
 /* ======================= JUEGO ======================= */
 const feed=$("#play");let current=null,session=null;
 const R={paused:false,pendingNext:null,pendingPlay:false,kind:"sub",idx:0,manual:false,subT:0,autoT:0};
-function hudUpd(){$("#xp").textContent=S.xp;$("#combo").textContent=session?session.combo:0;$("#coins").textContent=S.coins;$("#comboChip").classList.toggle("hot",session&&session.combo>=3);$("#snd2").textContent=S.opt.sound?"🔊":"🔇";
-  $("#h-coins").textContent=S.coins;$("#h-xp").textContent=S.xp;$("#h-lv").textContent=LVL(S.xp);$("#h-tix").textContent=S.tix}
+function hudUpd(){$("#xp").textContent=S.xp;$("#combo").textContent=session?session.combo:0;$("#coins").textContent=window.RC&&RC.profile?RC.profile.coins.toLocaleString("es-CL"):"—";$("#comboChip").classList.toggle("hot",session&&session.combo>=3);$("#snd2").textContent=S.opt.sound?"🔊":"🔇";
+  $("#h-xp").textContent=S.xp;$("#h-lv").textContent=LVL(S.xp)}
 $("#snd2").onclick=()=>{S.opt.sound=!S.opt.sound;save();hudUpd()};
-function newSession(kind,L,cards,label,mod){session={kind,L,cards,label,mod,combo:0,right:0,total:0,bossPerfect:false,mult2:0,wrong:[]};}
+function newSession(kind,L,cards,label,mod){session={kind,L,cards,label,mod,combo:0,right:0,total:0,bossPerfect:false,mult2:0,wrong:[],sent0:window.RC?{...RC.sent}:{xp:0,coins:0}};}
 function startLevel(L){const l=LV[L];newSession("level",L,l.cards,L,l.mod);enterPlay()}
 function startMix(){let pool=mixPool();const fails=shuffle(pool.filter(c=>(S.q[c.uid]||{}).l===0)),news=shuffle(pool.filter(c=>!S.q[c.uid])),rest=shuffle(pool.filter(c=>S.q[c.uid]&&S.q[c.uid].l!==0));
   let qs=[...fails,...news,...rest].slice(0,mixN);qs=shuffle(qs);const cards=[{t:"intro",m:"mix",n:"MIX",title:"Mezcla",sub:qs.length+" preguntas de "+[...mixSel].join(", ")+". Primero las falladas y nuevas.",uid:"mix-intro"}];
@@ -1378,33 +1307,34 @@ function render(c,i){
     gr.querySelector(".g1").onclick=e=>{fin("g1");answer(true,e.currentTarget,card,c);setTimeout(()=>goNext(card),1500)};
     gr.querySelector(".g2").onclick=e=>{fin("g2");try{if(window.RC)RC.study("dev",false,0)}catch(x){}const m=S.q[c.uid]||{r:0,w:0,l:-1};m.w++;m.l=0;S.q[c.uid]=m;addXP(4,e.currentTarget);addCoins(1,e.currentTarget);sticker("ok","img/ok_teto2.gif");save();setTimeout(()=>goNext(card),1300)};
     gr.querySelector(".g3").onclick=e=>{fin("g3");answer(false,e.currentTarget,card,c);setTimeout(()=>goNext(card),1700)};break;}
-  case"chest":{cin.insertAdjacentHTML("beforeend",'<h2 class="hook">Cofre <em>misterioso</em></h2><p class="cap" style="font-weight:600">Tócalo. Puede salir XP, monedas, un multiplicador o un sticker.</p><button class="chest" type="button" aria-label="Abrir cofre">🎁</button><div class="reward"><div class="amt"></div><p class="cap"></p></div>');
+  case"chest":{cin.insertAdjacentHTML("beforeend",'<h2 class="hook">Cofre <em>misterioso</em></h2><p class="cap" style="font-weight:600">Tócalo. Puede salir XP, un multiplicador o el jackpot.</p><button class="chest" type="button" aria-label="Abrir cofre">🎁</button><div class="reward"><div class="amt"></div><p class="cap"></p></div>');
     const b=cin.querySelector(".chest"),rw=cin.querySelector(".reward");
     b.onclick=()=>{if(b.dataset.open)return;b.dataset.open=1;buzz([20,30,20,30,120]);b.style.animation="none";b.innerHTML='<img src="'+pick(["img/chest_pear.gif","img/chest_pear2.gif"])+'" alt="" style="width:120px;border-radius:14px">';
       const r=Math.random();let amt="",txt="";
-      if(r<.3){addXP(25,b);amt="+25 XP";txt="XP de regalo.";SFX.coin()}else if(r<.6){addCoins(20,b);amt="+20 🪙";txt="Monedas para la tienda.";clip("laugh")}else if(r<.78){session.mult2=3;amt="BOOST";txt="Tus próximas 3 correctas valen +1 multiplicador.";SFX.combo()}
-      else if(r<.93){const s=rollSticker(rollR({C:60,R:32,E:7,L:1}));const res=giveSticker(s.id,true);amt="STICKER";txt=s.n+" · "+RN[s.r]+(res.had?" (repetido +"+res.refund+" 🪙)":" ¡nuevo!");rarFx(s.r);b.innerHTML='<img src="'+s.f+'" alt="" style="width:140px;border-radius:14px;border:3px solid var(--r'+s.r.toLowerCase()+')">'}
-      else{addCoins(100,b);addXP(50,b);amt="¡JACKPOT!";txt="+100 🪙 y +50 XP";clip("tequila");confetti(200)}
+      if(r<.3){addXP(25,b);amt="+25 XP";txt="XP de regalo.";SFX.coin()}else if(r<.6){addXP(40,b);amt="+40 XP";txt="XP extra para tu nivel de Redes.";clip("laugh")}else if(r<.78){session.mult2=3;amt="BOOST";txt="Tus próximas 3 correctas valen +1 multiplicador.";SFX.combo()}
+      else if(r<.93){session.mult2=5;amt="SÚPER BOOST";txt="Tus próximas 5 correctas valen +1 multiplicador.";SFX.combo()}
+      else{addXP(120,b);amt="¡JACKPOT!";txt="+120 XP";clip("tequila");confetti(200)}
       rw.querySelector(".amt").textContent=amt;rw.querySelector("p").textContent=txt;rw.classList.add("show");confetti(70);toast("¡ABIERTO!","var(--xp)")};break;}
   case"pause":{cin.insertAdjacentHTML("beforeend",'<h2 class="hook">Pit stop de <em>20 segundos</em></h2><p class="cap" style="font-weight:600">Suelta el celular, respira hondo y estira el cuello. Tu cerebro guarda mejor lo que viste si le das una pausa corta.</p><div class="ring"><svg viewBox="0 0 120 120"><circle class="bgc" cx="60" cy="60" r="52"/><circle class="fgc" cx="60" cy="60" r="52" stroke-dasharray="327" stroke-dashoffset="0"/></svg><span>20</span></div><img class="gifbox" src="'+pick(["img/pause_yui.gif","img/pause_mugi.gif"])+'" alt="" style="max-height:16vh">');
     card._start=()=>{if(card._t||card._done)return;let s=20;const sp=cin.querySelector(".ring span"),fg=cin.querySelector(".fgc");card._t=setInterval(()=>{if(R.paused)return;s--;sp.textContent=s;fg.style.strokeDashoffset=327*(1-s/20);if(s<=0){clearInterval(card._t);card._done=1;sp.textContent="✓";addXP(15,sp);SFX.ok();confetti(50)}},1000)};
     card._stop=()=>{if(card._t&&!card._done){clearInterval(card._t);card._t=0;cin.querySelector(".ring span").textContent="20";cin.querySelector(".fgc").style.strokeDashoffset=0}};break;}
   case"boss":{const n=c.qs.length;let hp=n,k=0,miss=0;
-    cin.insertAdjacentHTML("beforeend",'<div class="boss-top"><div class="boss-face">'+c.face+'</div><div class="hp"><div class="lbl"><span>'+c.name+'</span><span class="hpn">'+n+'/'+n+'</span></div><div class="hb"><i></i></div></div></div><p class="cap" style="font-size:14px;color:var(--muted)">Responde las '+n+' seguidas. Sin fallar: +60 XP y +30 🪙.</p><div class="bq" style="display:contents"></div>');
+    cin.insertAdjacentHTML("beforeend",'<div class="boss-top"><div class="boss-face">'+c.face+'</div><div class="hp"><div class="lbl"><span>'+c.name+'</span><span class="hpn">'+n+'/'+n+'</span></div><div class="hb"><i></i></div></div></div><p class="cap" style="font-size:14px;color:var(--muted)">Responde las '+n+' seguidas. Sin fallar: +60 XP.</p><div class="bq" style="display:contents"></div>');
     const holder=cin.querySelector(".bq"),face=cin.querySelector(".boss-face");
     const step=()=>{holder.innerHTML="";if(k>=n){const perfect=miss===0,won=hp<=0;
-        holder.innerHTML='<h2 class="hook" style="text-align:center">'+(won?'Jefe <em>derrotado</em>':'El jefe <em>escapó</em>')+'</h2><p class="cap" style="text-align:center;font-weight:600">'+(perfect?"Perfecto. +60 XP y +30 🪙":won?"Ganaste. +30 XP":"Repasa las que fallaste y vuelve.")+'</p><button class="btn" type="button">Seguir ↓</button>';
+        holder.innerHTML='<h2 class="hook" style="text-align:center">'+(won?'Jefe <em>derrotado</em>':'El jefe <em>escapó</em>')+'</h2><p class="cap" style="text-align:center;font-weight:600">'+(perfect?"Perfecto. +60 XP":won?"Ganaste. +30 XP":"Repasa las que fallaste y vuelve.")+'</p><button class="btn" type="button">Seguir ↓</button>';
         if(won){addXP(perfect?60:30,face);if(perfect)addCoins(30,face);confetti(perfect?220:120);toast(perfect?"PERFECT":"K.O.","var(--hot)");SFX.lvl();if(session.L){if(perfect||!S.boss[session.L])S.boss[session.L]=perfect?"perfect":"won";save();checkTro()}}else clip("scream");
         holder.querySelector(".btn").onclick=()=>goNext(card);return}
       const q=Object.assign({},c.qs[k],{uid:c.uid+"-"+k});const qb=quizBlock(card,q,{onDone:ok=>{if(ok){hp--;face.textContent="💥";face.classList.remove("hit");void face.offsetWidth;face.classList.add("hit");setTimeout(()=>face.textContent=hp<=0?"💀":c.face,450)}else miss++;cin.querySelector(".hp .hb i").style.width=(hp/n*100)+"%";cin.querySelector(".hpn").textContent=hp+"/"+n;setTimeout(()=>{k++;step()},ok?1100:2600)}});holder.appendChild(qb)};
     step();break;}
-  case"end":{cin.innerHTML='<span class="tag xp">Fin</span><h2 class="hook" id="e-h"></h2><div class="statgrid"><div class="stat"><b id="e-acc">0%</b><span>aciertos</span></div><div class="stat"><b id="e-c">0</b><span>monedas</span></div><div class="stat"><b id="e-t">0</b><span>boletos</span></div></div><p class="cap" id="e-msg" style="font-size:15px;font-weight:600"></p><button class="btn" type="button" id="e-rev">Repasar los fallos de esta sesión</button><button class="btn ghost" type="button" id="e-home">Volver al inicio</button>';
-    card._start=()=>{if(card._done)return;card._done=1;session.ended=true;const acc=session.total?Math.round(session.right/session.total*100):0;let coins=0,tix=0,msg="",h="";
-      if(session.kind==="level"){const L=session.L;const first=!lvDone(L);coins=first?40:10;if(first){tix=1;S.tix++}S.lv[L]={done:true,best:Math.max(acc,(S.lv[L]||{}).best||0)};h=first?'¡Nivel <em>'+L+'</em> completado!':'Nivel <em>'+L+'</em> otra vez';
-        msg=first?"Primera vez: +40 🪙 y +1 🎟️ boleto para canjear un sticker.":"Repetido: +10 🪙. Las preguntas que ya dominabas dieron menos XP.";if(first){clip("tenshi");confetti(200)}else confetti(80)}
-      else if(session.kind==="mix"){coins=15;S.mixes++;h='Mezcla <em>terminada</em>';msg="+15 🪙 por terminar la mezcla.";confetti(120);clip("laugh")}
-      else{coins=10;h='Repaso <em>terminado</em>';msg="+10 🪙. Las que acertaste salieron de tu lista de fallos.";confetti(100)}
-      S.coins+=coins;save();hudUpd();checkTro();cin.querySelector("#e-h").innerHTML=h;cin.querySelector("#e-acc").textContent=acc+"%";cin.querySelector("#e-c").textContent="+"+coins;cin.querySelector("#e-t").textContent="+"+tix;cin.querySelector("#e-msg").textContent=msg;
+  case"end":{cin.innerHTML='<span class="tag xp">Fin</span><h2 class="hook" id="e-h"></h2><div class="statgrid"><div class="stat"><b id="e-acc">0%</b><span>aciertos</span></div><div class="stat"><b id="e-c">—</b><span>💰 cuenta</span></div><div class="stat"><b id="e-t">—</b><span>XP cuenta</span></div></div><p class="cap" id="e-msg" style="font-size:15px;font-weight:600"></p><button class="btn" type="button" id="e-rev">Repasar los fallos de esta sesión</button><button class="btn ghost" type="button" id="e-home">Volver al inicio</button>';
+    card._start=()=>{if(card._done)return;card._done=1;session.ended=true;const acc=session.total?Math.round(session.right/session.total*100):0;let msg="",h="";
+      if(session.kind==="level"){const L=session.L;const first=!lvDone(L);S.lv[L]={done:true,best:Math.max(acc,(S.lv[L]||{}).best||0)};h=first?'¡Nivel <em>'+L+'</em> completado!':'Nivel <em>'+L+'</em> otra vez';
+        msg=first?"Primera vez: nivel marcado como completado.":"Repetido: las preguntas que ya dominabas dieron menos XP de Redes.";if(first){clip("tenshi");confetti(200)}else confetti(80)}
+      else if(session.kind==="mix"){S.mixes++;h='Mezcla <em>terminada</em>';msg="Mezcla completada.";confetti(120);clip("laugh")}
+      else{h='Repaso <em>terminado</em>';msg="Las que acertaste salieron de tu lista de fallos.";confetti(100)}
+      save();hudUpd();checkTro();cin.querySelector("#e-h").innerHTML=h;cin.querySelector("#e-acc").textContent=acc+"%";cin.querySelector("#e-msg").textContent=msg+(window.RC&&RC.online?" Lo ganado ya está en tu cuenta.":" Entra en 🌐 Comunidad para que tus respuestas sumen al ranking.");
+      const s0=session.sent0||{xp:0,coins:0};const fillAcc=()=>{if(!window.RC||!RC.online)return;cin.querySelector("#e-c").textContent="+"+(RC.sent.coins-s0.coins);cin.querySelector("#e-t").textContent="+"+(RC.sent.xp-s0.xp)};if(window.RC&&RC.online)RC.flush().then(fillAcc);
       cin.querySelector("#e-rev").textContent="Repasar los fallos de esta sesión ("+session.wrong.length+")";cin.querySelector("#e-rev").disabled=!session.wrong.length};
     cin.querySelector("#e-home").onclick=exitPlay;
     cin.querySelector("#e-rev").onclick=()=>{const qs=[...new Map(session.wrong.filter(q=>ALLQ[q.uid]).map(q=>[q.uid,ALLQ[q.uid]])).values()];if(!qs.length)return;newSession("review",null,[{t:"intro",m:"mix",n:"REP",title:"Repaso de la sesión",sub:qs.length+" preguntas que fallaste recién.",uid:"rs-intro"},...shuffle(qs),{t:"end",m:"mix",uid:"rs-end"}],"REPASO","mix");enterPlay()};break;}
@@ -1471,7 +1401,7 @@ $("#vpaused").onclick=e=>{e.stopPropagation();setPaused(false)};
 /* ======================= INICIO ======================= */
 (function boot(){
   const today=new Date().toISOString().slice(0,10);
-  if(S.daily!==today){S.daily=today;S.coins+=20;save();$("#daily").hidden=false;setTimeout(()=>{banner("🎁","Bono diario","+20 🪙 por estudiar hoy");},600);document.addEventListener("pointerdown",function once(){clip("imbocchi");document.removeEventListener("pointerdown",once)})}
+  if(S.daily!==today){S.daily=today;save();document.addEventListener("pointerdown",function once(){clip("imbocchi");document.removeEventListener("pointerdown",once)})}
   let tab="home";try{tab=localStorage.getItem("rr6-tab")||"home"}catch(e){}
   $("#b-sim").onclick=openExamList;
   showPane(["home","col","shop","lib","tro","com"].includes(tab)?tab:"home");hubUpd();checkTro();
