@@ -27,6 +27,7 @@ export function render(root) {
       <button class="cta big rush"><b>⚡ Modo Rush</b><small>Preguntas sin parar, combos y cofres</small></button>
       <button class="cta learn"><b>📚 Aprender desde cero</b><small>${TOPICS.length} lecciones con ejemplos resueltos</small></button>
       <button class="cta practice"><b>✍️ Practicar desarrollo</b><small>Escribe el desarrollo y los resultados</small></button>
+      ${SUBJECT.id === 'pp' ? '<a class="cta c2tables" href="pp/tablas-c2.html" style="text-decoration:none;color:inherit;grid-column:1/-1"><b>🧮 Certamen 2: aprende a llenar las 6 tablas</b><small>Puesta en marcha, capital de trabajo, depreciación, inversión, amortización y flujo de caja · casos 2024, 2025 y al azar</small></a>' : ''}
     </div>
     <div class="card daily"></div>
     <div class="card"><h3>Misiones de hoy</h3><div class="missions"></div></div>

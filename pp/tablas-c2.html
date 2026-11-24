@@ -1,0 +1,448 @@
+<title>Tablas del Certamen 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Hoja de certamen + planilla de la pauta: papel claro, tinta azul, verde de planilla para lo correcto, amarillo de celda seleccionada. */
+:root {
+  --paper: #f7f7f2; --sheet: #ffffff; --ink: #1b2440; --muted: #5d6478; --line: #d9dbe2; --head: #eef0f5;
+  --accent: #1d6b4a; --accent-soft: #e3f1ea; --sel: #fff1b8; --bad: #b3261e; --bad-soft: #fbe7e5; --note: #fff8e1; --note-line: #e6c65c;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif; --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #13161f; --sheet: #1b1f2b; --ink: #e6e9f2; --muted: #9aa1b5; --line: #323849; --head: #232838;
+  --accent: #5fc99a; --accent-soft: #1d3a2e; --sel: #4a4120; --bad: #ff8a80; --bad-soft: #3d2222; --note: #2c2818; --note-line: #8a7530; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #13161f; --sheet: #1b1f2b; --ink: #e6e9f2; --muted: #9aa1b5; --line: #323849; --head: #232838;
+  --accent: #5fc99a; --accent-soft: #1d3a2e; --sel: #4a4120; --bad: #ff8a80; --bad-soft: #3d2222; --note: #2c2818; --note-line: #8a7530; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--f-body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 24px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(26px, 5vw, 40px); font-weight: 800; }
+h2 { font-size: 22px; font-weight: 800; display: flex; gap: 10px; align-items: baseline; }
+h2 .n { font-family: var(--f-mono); font-size: 14px; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 6px; padding: 0 6px; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; max-width: 72ch; }
+.muted { color: var(--muted); }
+.top { display: grid; gap: 14px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1.5px solid var(--ink); border-radius: 10px; overflow: hidden; }
+.seg button { background: transparent; color: var(--ink); border: 0; padding: 8px 12px; font: 600 14px var(--f-body); cursor: pointer; }
+.seg button + button { border-left: 1.5px solid var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.btn { background: var(--sheet); color: var(--ink); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 12px; font: 600 14px var(--f-body); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--sheet); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--note-line); outline-offset: 2px; }
+.card { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.data { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.data h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.data ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.data li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted var(--line); }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.note { background: var(--note); border-left: 4px solid var(--note-line); padding: 10px 12px; border-radius: 6px; }
+.note ul { margin: 4px 0 0; padding-left: 18px; }
+section.step { display: grid; gap: 14px; }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.how ol, .how ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.cases { border-top: 1px solid var(--line); padding-top: 10px; }
+.cases b { color: var(--accent); }
+.tscroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet); }
+table { border-collapse: collapse; font-size: 13.5px; width: max-content; min-width: 100%; }
+th, td { border: 1px solid var(--line); padding: 5px 8px; white-space: nowrap; }
+thead th { background: var(--head); font: 600 12px var(--f-body); text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; }
+th.rowh { text-align: left; background: var(--head); font: 600 13px var(--f-body); position: sticky; left: 0; z-index: 1; }
+td.sign { width: 28px; text-align: center; color: var(--muted); font-family: var(--f-mono); }
+td.v { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; cursor: pointer; min-width: 84px; }
+td.v:hover { background: var(--head); }
+td.v.sel { background: var(--sel); outline: 2px solid var(--note-line); outline-offset: -2px; }
+td.v.neg { color: var(--bad); }
+td.v.ok { background: var(--accent-soft); }
+td.v.badc { background: var(--bad-soft); }
+tr.total td, tr.total th { font-weight: 700; border-top: 2px solid var(--ink); }
+tr.key td.v { font-weight: 700; }
+td input { width: 92px; font: 13.5px var(--f-mono); text-align: right; border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px; background: var(--paper); color: var(--ink); }
+.explain { min-height: 52px; background: var(--sel); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.explain .f { font-family: var(--f-mono); font-size: 13.5px; display: block; margin-top: 2px; overflow-wrap: anywhere; }
+.result { display: flex; flex-wrap: wrap; gap: 10px; }
+.pill { border: 1.5px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-weight: 600; }
+.pill.good { border-color: var(--accent); color: var(--accent); }
+.pill.badp { border-color: var(--bad); color: var(--bad); }
+.practice-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.score { font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) { td.v { transition: background .15s; } }
+.step h2 .n{white-space:nowrap}</style>
+<div class="wrap">
+  <header class="top">
+    <p class="muted"><a href="../?materia=pp#home" style="color:inherit">← Volver a Proyectos Rush</a> · Preparación de Proyectos · Prof. Bruno Dondero · formato del Certamen 2 (2024 y 2025)</p>
+    <h1>Las 6 tablas del Certamen 2, paso a paso</h1>
+    <p>Elige un caso. Toca cualquier número de una tabla para ver de dónde sale, con la fórmula y los valores. En <b>Practicar</b> las tablas quedan en blanco para que las llenes y las revises.</p>
+    <div class="bar">
+      <div class="seg" id="caseSeg" role="group" aria-label="Caso">
+        <button id="b2024" data-case="c2024">Certamen 2024</button>
+        <button id="b2025" data-case="c2025">Certamen 2025</button>
+        <button id="bnew" data-case="new">Caso nuevo al azar</button>
+      </div>
+      <div class="seg" id="modeSeg" role="group" aria-label="Modo">
+        <button id="mSee" data-mode="see">Ver solución</button>
+        <button id="mPra" data-mode="practice">Practicar</button>
+      </div>
+    </div>
+  </header>
+  <div id="app"></div>
+</div>
+<script>
+// ===== Motor de cálculo (replica la pauta del profesor) =====
+const r2 = (x) => Math.round((x + Math.sign(x) * 1e-9) * 100) / 100;
+const sum = (a) => a.reduce((s, x) => s + x, 0);
+function solve(C) {
+  const toUF = (x) => C.inUF ? r2(x) : r2(x / C.UF);
+  const o = { C };
+  o.serv = toUF(sum(C.services.map(s => s.v)));
+  o.suel = toUF(sum(C.salaries.map(s => s.v)));
+  o.unit = toUF(sum(C.unitCost.map(s => s.v)));
+  o.price = toUF(C.price);
+  o.pat = toUF(C.patente.v);
+  o.gar = C.garantia ? toUF(C.garantia) : 0;
+  // --- capital de trabajo (mes a mes)
+  const M = [];
+  let acc = 0;
+  for (let m = 1; m <= 12; m++) {
+    const u = C.units[m - 1], up = m > 1 ? C.units[m - 2] : 0;
+    const cont = r2(u * o.price * C.contado), cuota = m > 1 ? r2(up * o.price * (1 - C.contado)) : 0;
+    const ing = r2(cont + cuota);
+    const extra = (m === 1 ? o.gar : 0) + (C.patente.months.includes(m) ? o.pat : 0);
+    const sv = r2(o.serv + extra), prod = r2(u * o.unit);
+    const saldo = r2(ing - sv - o.suel - prod);
+    acc = r2(acc + saldo);
+    M.push({ m, u, up, cont, cuota, ing, sv, extra, suel: o.suel, prod, saldo, acc });
+  }
+  o.M = M;
+  const mn = Math.min(...M.map(x => x.acc));
+  o.CT = mn < 0 ? -mn : 0;
+  o.ctMonth = M.find(x => x.acc === mn).m;
+  // --- puesta en marcha
+  o.pem = toUF(sum(C.pem.map(p => p.v)));
+  // --- depreciación
+  o.D = C.assets.map(a => {
+    const b = toUF(a.buy), s = toUF(a.sale), d = r2(b / a.T), ys = [];
+    for (let t = 1; t <= 3; t++) ys.push(t > a.T ? 0 : (t === a.T ? r2(b - d * (a.T - 1)) : d));
+    const VL = r2(b - sum(ys));
+    return { ...a, b, s, d, ys, VL, dif: r2(s - VL) };
+  });
+  o.act = r2(sum(o.D.map(x => x.b)));
+  o.dep = [0, 1, 2].map(k => r2(sum(o.D.map(x => x.ys[k]))));
+  o.VL = r2(sum(o.D.map(x => x.VL))); o.vta = r2(sum(o.D.map(x => x.s))); o.dif = r2(sum(o.D.map(x => x.dif)));
+  // --- inversión inicial
+  o.base = r2(o.CT + o.pem + o.act);
+  o.imp = r2(o.base * C.imprev);
+  o.inv = r2(o.base + o.imp);
+  // --- amortización
+  const P0 = r2(o.inv * C.lp), i = C.iLP;
+  const cuota = r2(P0 * i * (1 + i) ** 3 / ((1 + i) ** 3 - 1));
+  const L = [{ t: 0, P: P0 }];
+  for (let t = 1; t <= 3; t++) {
+    const I = r2(L[t - 1].P * i), A = t < 3 ? r2(cuota - I) : L[t - 1].P;
+    L.push({ t, I, A, C: r2(A + I), P: r2(L[t - 1].P - A) });
+  }
+  o.L = L; o.P0 = P0; o.cuota = cuota;
+  // --- flujo de caja
+  const F = [{ t: 0 }];
+  let cpPrev = 0, uaiPrev = 0;
+  for (let t = 1; t <= 3; t++) {
+    const q = C.demand[t - 1];
+    const ing = r2(q * o.price), cS = r2(12 * o.serv), cW = r2(12 * o.suel), cP = r2(q * o.unit), cost = r2(cS + cW + cP);
+    const U = r2(ing - cost), iLP = L[t].I, iCP = r2(cpPrev * C.iCP), dep = o.dep[t - 1], dif = t === 3 ? o.dif : 0, pea = uaiPrev < 0 ? -uaiPrev : 0;
+    const UAI = r2(U - iLP - iCP - dep + dif - pea), tax = UAI > 0 ? r2(UAI * C.tax) : 0, UDI = r2(UAI - tax);
+    const vl = t === 3 ? o.VL : 0, ct = t === 3 ? o.CT : 0;
+    const total = r2(UDI + pea + dep - L[t].A - cpPrev + vl + ct);
+    const CP = total < 0 && t < 3 ? -total : 0;
+    F.push({ t, q, ing, cS, cW, cP, cost, U, iLP, iCP, dep, dif, pea, UAI, tax, UDI, amLP: L[t].A, amCP: cpPrev, vl, ct, total, CP, LP: 0, FN: r2(total + CP) });
+    cpPrev = CP; uaiPrev = UAI;
+  }
+  F[0] = { t: 0, ctIn: o.CT, pemIn: o.pem, actIn: o.act, impIn: o.imp, total: -o.inv, LP: P0, CP: 0, FN: r2(-o.inv + P0) };
+  let a = 0; o.PRI = null;
+  for (const f of F) { f.VA = r2(f.FN / (1 + C.rate) ** f.t); a = r2(a + f.VA); f.acc = a; if (o.PRI === null && f.t > 0 && a >= 0) o.PRI = f.t; }
+  o.F = F; o.VAN = a;
+  // TIR por bisección
+  const npv = (x) => sum(F.map(f => f.FN / (1 + x) ** f.t));
+  let lo = -0.99, hi = 50; o.TIR = null;
+  if (npv(lo) * npv(hi) < 0) { for (let k = 0; k < 200; k++) { const m = (lo + hi) / 2; if (npv(lo) * npv(m) <= 0) hi = m; else lo = m; } o.TIR = (lo + hi) / 2; }
+  return o;
+}
+if (typeof module !== 'undefined') module.exports = { solve };
+// ===== Casos =====
+const SERV24 = [{ n: 'Agua potable', v: 50000 }, { n: 'Electricidad', v: 50000 }, { n: 'Gas', v: 50000 }, { n: 'Arriendo', v: 700000 }, { n: 'Teléfono', v: 60000 }];
+const CASES = {
+  c2024: {
+    name: 'Certamen 2024 (pauta del profe)', product: 'control electrónico de invernaderos', UF: 38095.99, inUF: false,
+    services: SERV24, garantia: 700000, patente: { v: 80000, months: [1, 7] },
+    salaries: [{ n: 'Gerente', v: 1000000 }, { n: 'Jefe técnico', v: 500000 }, { n: 'Secretaria', v: 350000 }, { n: 'Contador (honorarios)', v: 60000 }],
+    pem: [{ n: 'Abogado (constitución de sociedad)', v: 20000 }, { n: 'Gastos notariales', v: 100000 }, { n: 'Remodelación', v: 2000000 }, { n: 'Marketing inicial', v: 1200000 }, { n: 'Inscripción de la marca', v: 90000 }],
+    unitCost: [{ n: 'Caja metálica', v: 80000 }, { n: 'Placa impresa, componentes', v: 70000 }, { n: 'Instrumentos', v: 120000 }, { n: 'Recursos humanos', v: 60000 }],
+    price: 800000, contado: 0.6, units: [0, 0, 3, 3, 3, 4, 4, 4, 5, 5, 9, 10],
+    assets: [{ n: 'Osciloscopios', buy: 2500000, sale: 500000, T: 2, cls: 'instrumento electrónico' }, { n: 'Generadores', buy: 1000000, sale: 200000, T: 2, cls: 'instrumento electrónico' }, { n: 'Fuentes de alimentación', buy: 800000, sale: 400000, T: 2, cls: 'instrumento electrónico' }, { n: 'Soldadora', buy: 160000, sale: 90000, T: 5, cls: 'maquinaria y equipos' }, { n: 'Mobiliario', buy: 200000, sale: 50000, T: 2, cls: 'muebles y enseres' }, { n: 'Computadoras', buy: 800000, sale: 180000, T: 2, cls: 'computadores' }],
+    mode: 'acelerada', imprev: 0.15, lp: 0.5, iLP: 0.06, iCP: 0.07, rate: 0.2, tax: 0.25, demand: [50, 150, 300],
+    notes: ['El enunciado dice imprevistos de 20%, pero la pauta del profesor usa 15%. Aquí se usa 15% para que los números calcen con su pauta. En la prueba, usa el % que diga el enunciado.', 'La pauta incluye mobiliario ($200.000, venta $50.000), aunque no aparece en la lista de activos del enunciado.', 'La pauta tiene un par de ajustes de 0,01 en la depreciación (por ejemplo, osciloscopios 32,81 y 32,80). Aquí el último año se ajusta para que el valor libro quede exactamente en 0. Los totales dan igual.'],
+  },
+  c2025: {
+    name: 'Certamen 2025', product: 'sistema de alarmas domiciliarias', UF: 40000, inUF: true,
+    services: [{ n: 'Agua potable', v: 1.2 }, { n: 'Electricidad', v: 1.2 }, { n: 'Gas', v: 1.2 }, { n: 'Arriendo', v: 10 }, { n: 'Teléfono', v: 1.5 }], garantia: 10, patente: { v: 3, months: [1, 7] },
+    salaries: [{ n: 'Gerente', v: 25 }, { n: 'Jefe técnico', v: 20 }, { n: 'Secretaria', v: 15 }, { n: 'Contador (honorarios)', v: 1.5 }],
+    pem: [{ n: 'Inscripción de la marca', v: 2.5 }, { n: 'Abogado (constitución de sociedad)', v: 1.2 }, { n: 'Gastos notariales', v: 2.5 }, { n: 'Remodelación', v: 26 }, { n: 'Marketing inicial', v: 35 }],
+    unitCost: [{ n: 'Componentes, cables', v: 2 }, { n: 'Cámaras', v: 2.5 }, { n: 'Sensores', v: 2.5 }, { n: 'Recursos humanos', v: 2 }],
+    price: 20, contado: 0.5, units: [0, 0, 3, 5, 5, 6, 6, 8, 8, 12, 15, 20],
+    assets: [{ n: 'Osciloscopios', buy: 16, sale: 5, T: 2, cls: 'instrumento electrónico' }, { n: 'Generadores', buy: 10, sale: 5, T: 2, cls: 'instrumento electrónico' }, { n: 'Fuentes de alimentación', buy: 8, sale: 5, T: 2, cls: 'instrumento electrónico' }, { n: 'Soldadoras', buy: 8, sale: 5, T: 5, cls: 'maquinaria y equipos' }, { n: 'Mobiliario', buy: 12, sale: 5, T: 2, cls: 'muebles y enseres' }, { n: 'Computadoras', buy: 20, sale: 5, T: 2, cls: 'computadores' }],
+    mode: 'acelerada', imprev: 0.15, lp: 0.4, iLP: 0.08, iCP: 0.1, rate: 0.2, tax: 0.25, demand: [50, 150, 300],
+    notes: ['El certamen 2025 llegaba hasta la tabla de amortización. El valor de venta de cada activo (5 UF), la demanda anual (50, 150 y 300) y la tasa de 20% son los de la pauta, para que puedas practicar también el flujo de caja.', 'La pauta Excel de 2025 quedó a medio actualizar: sigue con 50% de crédito al 6%/7% (el enunciado dice 40% al 8%/10%), la puesta en marcha en pesos del 2024 y la compra de activos en 0. Aquí todo se calcula con los datos del enunciado 2025.'],
+  },
+};
+
+// Caso nuevo al azar, con la misma estructura del certamen
+function randomCase(seed) {
+  let s = seed >>> 0 || 1;
+  const rnd = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  const pick = (a) => a[Math.floor(rnd() * a.length)], int = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+  const inUF = rnd() < 0.5, UF = inUF ? pick([38000, 39000, 40000]) : pick([37850.12, 38095.99, 39120.55, 40000]);
+  const m = (pesos) => inUF ? Math.round(pesos / UF * 10) / 10 || 0.5 : Math.round(pesos / 10000) * 10000;
+  const prods = [['control de riego automático', 'Válvulas y sensores', 'Placa controladora'], ['cargador solar para vehículos', 'Panel y regulador', 'Gabinete'], ['sistema de alarmas domiciliarias', 'Cámaras', 'Sensores'], ['tablero eléctrico industrial', 'Gabinete metálico', 'Protecciones'], ['control electrónico de invernaderos', 'Caja metálica', 'Placa y componentes']];
+  const [product, c1, c2] = pick(prods);
+  const arr = m(pick([500000, 600000, 700000, 800000]));
+  const priceP = pick([600000, 700000, 800000, 900000, 1000000]);
+  const unitParts = [{ n: c1, v: m(priceP * pick([0.08, 0.1, 0.12])) }, { n: c2, v: m(priceP * pick([0.08, 0.1, 0.12])) }, { n: 'Instrumentos', v: m(priceP * pick([0.1, 0.15])) }, { n: 'Recursos humanos', v: m(priceP * pick([0.06, 0.08])) }];
+  const mode = rnd() < 0.7 ? 'acelerada' : 'normal';
+  const A = [['Osciloscopios', 'instrumento electrónico', 6, 2, [1.5, 3]], ['Generadores de señales', 'instrumento electrónico', 6, 2, [0.8, 1.5]], ['Fuentes de alimentación', 'instrumento electrónico', 6, 2, [0.5, 1]], ['Soldadora', 'maquinaria y equipos', 15, 5, [0.15, 0.4]], ['Taladro de banco', 'herramientas pesadas', 8, 2, [0.2, 0.5]], ['Mobiliario', 'muebles y enseres', 7, 2, [0.2, 0.6]], ['Computadoras', 'computadores', 6, 2, [0.6, 1.2]], ['Camioneta', 'camionetas y jeeps', 7, 2, [8, 14]]];
+  const assets = A.filter(() => rnd() < 0.75).slice(0, 6).map(([n, cls, Tn, Ta, [lo, hi]]) => { const buy = m((lo + rnd() * (hi - lo)) * 1e6); return { n, cls, T: mode === 'acelerada' ? Ta : Tn, buy, sale: inUF ? Math.round(buy * pick([0.2, 0.3, 0.4, 0.5])) : Math.round(buy * pick([0.2, 0.3, 0.4, 0.5]) / 10000) * 10000 }; });
+  if (assets.length < 4) assets.push({ n: 'Soldadora', cls: 'maquinaria y equipos', T: mode === 'acelerada' ? 5 : 15, buy: m(300000), sale: m(100000) });
+  let u = 0; const start = int(1, 3);
+  const units = Array.from({ length: 12 }, (_, k) => k + 1 < start ? 0 : (u = u + int(0, 2) + (k % 4 === 0 ? 1 : 0)));
+  const d1 = pick([40, 50, 60, 80, 120, 150]);
+  return {
+    name: 'Caso nuevo #' + (seed % 1000), product, UF, inUF,
+    services: [{ n: 'Agua potable', v: m(pick([40000, 50000, 60000])) }, { n: 'Electricidad', v: m(pick([50000, 70000, 90000])) }, { n: 'Gas', v: m(pick([30000, 50000])) }, { n: 'Arriendo', v: arr }, { n: 'Teléfono / internet', v: m(pick([40000, 60000])) }],
+    garantia: rnd() < 0.8 ? arr : 0, patente: { v: m(pick([80000, 100000, 120000])), months: [1, 7] },
+    salaries: [{ n: 'Gerente', v: m(pick([900000, 1000000, 1200000])) }, { n: 'Jefe técnico', v: m(pick([500000, 700000, 800000])) }, { n: 'Secretaria', v: m(pick([350000, 450000, 500000])) }, { n: 'Contador (honorarios)', v: m(pick([60000, 80000, 100000])) }],
+    pem: [{ n: 'Abogado (constitución de sociedad)', v: m(pick([20000, 50000, 100000])) }, { n: 'Gastos notariales', v: m(pick([80000, 100000, 120000])) }, { n: 'Remodelación', v: m(pick([1000000, 1500000, 2000000, 3000000])) }, { n: 'Marketing inicial', v: m(pick([800000, 1200000, 1500000])) }, { n: 'Inscripción de la marca', v: m(pick([90000, 100000])) }],
+    unitCost: unitParts, price: m(priceP), contado: pick([0.5, 0.6, 0.7, 0.8]), units, assets, mode,
+    imprev: pick([0.1, 0.15, 0.2]), lp: pick([0.3, 0.4, 0.5, 0.6]), iLP: pick([0.05, 0.06, 0.07, 0.08]), iCP: pick([0.07, 0.1, 0.12]), rate: pick([0.12, 0.15, 0.2]), tax: 0.25,
+    demand: [d1, d1 * pick([2, 3]), d1 * pick([4, 5, 6])], notes: [],
+  };
+}
+if (typeof module !== 'undefined') module.exports = { CASES, randomCase };
+const $ = (s, e = document) => e.querySelector(s);
+const esc = (x) => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const nf = (x, d = 2) => { const neg = x < 0 && Math.abs(x) >= 0.5 * 10 ** -d; const [i, f] = Math.abs(x).toFixed(d).split('.'); return (neg ? '-' : '') + i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (f ? ',' + f : ''); };
+const pc = (x) => String(+(x * 100).toFixed(2)).replace('.', ',') + '%';
+const orig = (C, v) => C.inUF ? nf(v) + ' UF' : '$' + nf(v, 0);
+const conv = (C, v, uf) => C.inUF ? `${nf(v)} UF (ya está en UF)` : `$${nf(v, 0)} ÷ ${nf(C.UF)} = ${nf(uf)} UF`;
+
+let state = { caseId: 'c2024', mode: 'see', seed: 1 };
+try { const s = JSON.parse(localStorage.getItem('tablas-c2') || '{}'); if (s.caseId) state = { ...state, ...s }; } catch { }
+const save = () => { try { localStorage.setItem('tablas-c2', JSON.stringify(state)); } catch { } };
+
+// Celda numérica con su explicación
+const V = (v, how, opts = {}) => ({ v, how, ...opts });
+
+function enunciado(C, o) {
+  const li = (n, v) => `<li><span>${esc(n)}</span><span class="num">${v}</span></li>`;
+  return `<section class="card"><h2>Enunciado · ${esc(C.name)}</h2>
+  <p>Empresa de fabricación y venta de <b>${esc(C.product)}</b>. Horizonte 3 años. UF = $${nf(C.UF)}. ${C.inUF ? 'Los valores vienen en UF.' : 'Los valores vienen en pesos: todo se pasa a UF con 2 decimales.'}</p>
+  <div class="data">
+    <div><h3>Costos de servicios (mensual)</h3><ul>${C.services.map(s => li(s.n, orig(C, s.v))).join('')}${C.garantia ? li('Garantía arriendo (una vez, mes 1)', orig(C, C.garantia)) : ''}${li('Patente semestral (meses ' + C.patente.months.join(' y ') + ')', orig(C, C.patente.v))}</ul></div>
+    <div><h3>Sueldos fijos (mensual)</h3><ul>${C.salaries.map(s => li(s.n, orig(C, s.v))).join('')}</ul></div>
+    <div><h3>Gastos antes de operar</h3><ul>${C.pem.map(s => li(s.n, orig(C, s.v))).join('')}</ul></div>
+    <div><h3>Costo de producir 1 unidad</h3><ul>${C.unitCost.map(s => li(s.n, orig(C, s.v))).join('')}</ul><p class="muted" style="margin-top:6px">Precio de venta: <b class="num">${orig(C, C.price)}</b>. Se construyen el mes en que se venden; se pagan ${pc(C.contado)} al contado y ${pc(1 - C.contado)} a un mes plazo.</p></div>
+    <div><h3>Activos (compra / venta al final)</h3><ul>${C.assets.map(a => li(`${a.n} (${a.cls}, T = ${a.T})`, `${orig(C, a.buy)} / ${orig(C, a.sale)}`)).join('')}</ul><p class="muted" style="margin-top:6px">Depreciación ${C.mode}.</p></div>
+    <div><h3>Financiamiento y tasas</h3><ul>${li('Imprevistos', pc(C.imprev))}${li('Crédito LP (3 años, cuota fija)', pc(C.lp) + ' al ' + pc(C.iLP))}${li('Créditos de corto plazo', pc(C.iCP))}${li('Tasa de descuento', pc(C.rate))}${li('Impuesto', pc(C.tax))}${li('Ventas por año (1, 2, 3)', C.demand.join(' · '))}</ul></div>
+  </div>
+  <div><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Ventas mes a mes (año 1)</h3><p class="num">${C.units.map((u, k) => `M${k + 1}: ${u}`).join(' · ')}</p></div>
+  ${C.notes.length ? `<div class="note"><b>Ojo con este caso</b><ul>${C.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''}
+  </section>`;
+}
+
+// ---------- definición de cada tabla ----------
+function tables(C, o) {
+  const T = [];
+  const uf = (v) => C.inUF ? v : v / C.UF;
+  // 0. Pasar todo a UF
+  T.push({ id: 'uf', n: '0', title: 'Antes de empezar: los datos mensuales en UF',
+    asks: 'No es una pregunta del certamen, pero lo necesitas para todas las tablas. Suma cada grupo en su moneda original y conviértelo una sola vez (así lo hace la pauta).',
+    steps: ['Suma todos los costos de servicios mensuales: agua, luz, gas, arriendo y teléfono.', 'Suma los sueldos fijos mensuales, incluido el contador a honorarios.', 'Suma lo que cuesta construir una unidad.', 'Divide cada total por el valor de la UF y redondea a 2 decimales.'],
+    cases: ['<b>Garantía de arriendo</b>: no es mensual. Se paga una vez, junto con el mes 1, y vale lo mismo que un arriendo.', '<b>Patente semestral</b>: se paga en los meses 1 y 7.', 'Si los datos ya vienen en UF, no se convierte nada: solo se suman.'],
+    head: ['Dato', 'Cálculo', 'UF'],
+    rows: [
+      ['Servicios por mes', { t: C.services.map(s => s.n.toLowerCase()).join(' + ') }, V(o.serv, `Servicios = ${conv(C, C.services.reduce((a, s) => a + s.v, 0), o.serv)}`)],
+      ['Sueldos fijos por mes', { t: C.salaries.map(s => s.n.split(' ')[0].toLowerCase()).join(' + ') }, V(o.suel, `Sueldos = ${conv(C, C.salaries.reduce((a, s) => a + s.v, 0), o.suel)}`)],
+      ['Costo de 1 unidad', { t: C.unitCost.map(s => s.n.toLowerCase()).join(' + ') }, V(o.unit, `Costo unitario = ${conv(C, C.unitCost.reduce((a, s) => a + s.v, 0), o.unit)}`)],
+      ['Precio de 1 unidad', { t: 'precio de venta' }, V(o.price, `Precio = ${conv(C, C.price, o.price)}`)],
+      ['Patente (meses ' + C.patente.months.join(' y ') + ')', { t: 'patente semestral' }, V(o.pat, `Patente = ${conv(C, C.patente.v, o.pat)}`)],
+      ...(C.garantia ? [['Garantía (solo mes 1)', { t: 'un arriendo' }, V(o.gar, `Garantía = ${conv(C, C.garantia, o.gar)}`)]] : []),
+    ] });
+  // 1. Puesta en marcha
+  T.push({ id: 'pem', n: '1', title: 'Gasto de puesta en marcha y remodelación',
+    asks: 'Son los gastos que se pagan una sola vez, antes de que la empresa empiece a operar.',
+    steps: ['Elige de la lista solo los gastos de una vez antes de operar: abogado y notaría (constitución de la sociedad), remodelación, marketing inicial e inscripción de la marca.', 'Pasa cada uno a UF (o suma en pesos y convierte el total).', 'Súmalos.'],
+    cases: ['<b>No van aquí</b>: lo mensual (servicios y sueldos), la garantía y la patente (van en el mes 1 del capital de trabajo) ni los activos (van en su propia tabla).', 'El enunciado te da "varios valores que usted debe decidir dónde ocupar": este es el primer filtro.'],
+    head: ['Gasto', 'Valor', 'UF'],
+    rows: [...C.pem.map(p => [p.n, { t: orig(C, p.v) }, V(+uf(p.v).toFixed(2), `${p.n}: ${conv(C, p.v, +uf(p.v).toFixed(2))}`)]),
+      ['Total puesta en marcha', { t: C.inUF ? '' : '$' + nf(C.pem.reduce((a, p) => a + p.v, 0), 0) }, V(o.pem, `Total = ${C.inUF ? C.pem.map(p => nf(p.v)).join(' + ') + ' = ' + nf(o.pem) + ' UF' : '$' + nf(C.pem.reduce((a, p) => a + p.v, 0), 0) + ' ÷ ' + nf(C.UF) + ' = ' + nf(o.pem) + ' UF'}`), 'total']] });
+  // 2. Capital de trabajo
+  const M = o.M, mm = (f) => M.map(f);
+  T.push({ id: 'ct', n: '2', title: 'Capital de trabajo (mes a mes, año 1)',
+    asks: 'Es la plata que hay que tener para aguantar los meses en que los gastos superan a los ingresos. Se calcula con la tabla de 12 meses: el capital de trabajo es el saldo acumulado más negativo (en positivo).',
+    steps: [`Contado: unidades del mes × precio × ${pc(C.contado)}.`, `Cuota a un mes: unidades del mes ANTERIOR × precio × ${pc(1 - C.contado)}. El mes 1 no tiene cuota.`, 'Total ingresos = contado + cuota.', 'Costos de servicios = servicios del mes; en el mes 1 súmale la garantía y la patente; en el mes 7, otra vez la patente.', 'Sueldos fijos: el mismo valor todos los meses.', 'Costos de producción = unidades del mes × costo unitario (se construyen el mismo mes que se venden).', 'Saldo = ingresos − servicios − sueldos − producción.', 'Saldo acumulado = acumulado anterior + saldo del mes.', 'Capital de trabajo = el acumulado más negativo, escrito en positivo.'],
+    cases: ['Si el pago es <b>100% al contado</b>, no hay fila de cuota.', 'Si el cliente paga <b>a 2 meses</b>, la cuota usa las unidades de 2 meses antes.', 'El déficit máximo no siempre está en el mes 12: búscalo en toda la fila. Cuando el acumulado empieza a subir, ya pasó.', 'Si el acumulado nunca es negativo, el capital de trabajo es 0.'],
+    head: ['', ...mm(x => 'Mes ' + x.m)],
+    rows: [
+      ['Unidades vendidas', ...mm(x => ({ t: String(x.u) }))],
+      ['Contado (' + pc(C.contado) + ')', ...mm(x => V(x.cont, `Mes ${x.m} · contado = ${x.u} × ${nf(o.price)} × ${pc(C.contado)} = ${nf(x.cont)}`))],
+      ['Cuota a 1 mes (' + pc(1 - C.contado) + ')', ...mm(x => x.m === 1 ? { t: '' } : V(x.cuota, `Mes ${x.m} · cuota = unidades del mes ${x.m - 1} (${x.up}) × ${nf(o.price)} × ${pc(1 - C.contado)} = ${nf(x.cuota)}`))],
+      ['+ Total ingresos', ...mm(x => V(x.ing, `Mes ${x.m} · ingresos = ${nf(x.cont)} + ${nf(x.cuota)} = ${nf(x.ing)}`))],
+      ['− Costos de servicios', ...mm(x => V(-x.sv, `Mes ${x.m} · servicios = ${nf(o.serv)}${x.m === 1 && o.gar ? ' + garantía ' + nf(o.gar) : ''}${C.patente.months.includes(x.m) ? ' + patente ' + nf(o.pat) : ''} = ${nf(x.sv)}`))],
+      ['− Sueldos fijos', ...mm(x => V(-x.suel, `Mes ${x.m} · sueldos fijos = ${nf(o.suel)} (igual todos los meses)`))],
+      ['− Costos de producción', ...mm(x => V(-x.prod, `Mes ${x.m} · producción = ${x.u} × ${nf(o.unit)} = ${nf(x.prod)}`))],
+      ['Saldo', ...mm(x => V(x.saldo, `Mes ${x.m} · saldo = ${nf(x.ing)} − ${nf(x.sv)} − ${nf(x.suel)} − ${nf(x.prod)} = ${nf(x.saldo)}`)), 'total'],
+      ['Saldo acumulado', ...mm((x, k) => V(x.acc, `Mes ${x.m} · acumulado = ${k ? nf(M[k - 1].acc) + ' + (' + nf(x.saldo) + ')' : 'saldo del mes 1'} = ${nf(x.acc)}${x.m === o.ctMonth ? '  ← el más negativo' : ''}`, { key: x.m === o.ctMonth }))],
+    ],
+    result: [['Capital de trabajo', o.CT, `El acumulado más negativo es ${nf(-o.CT)} (mes ${o.ctMonth}) ⇒ capital de trabajo = ${nf(o.CT)} UF`]] });
+  // 3. Depreciación
+  const yrs = [1, 2, 3];
+  T.push({ id: 'dep', n: '3', title: 'Tabla de depreciación',
+    asks: `Depreciación lineal con valor residual 0, usando la vida útil ${C.mode} de la tabla del SII. Al final del año 3 se venden los activos.`,
+    steps: ['Pasa cada compra a UF (2 decimales).', `Busca T en la tabla del SII (${C.mode}). Instrumentos electrónicos y computadores = 6/2; maquinaria y equipos (soldadora) = 15/5; muebles = 7/2; camionetas = 7/2.`, 'Depreciación anual = compra UF ÷ T (2 decimales). Se pone en los años 1, 2, 3 mientras dure su vida útil.', 'Si con el redondeo sobra o falta un centavo, ajústalo en el último año de vida útil para que el valor libro quede en 0.', 'VL = compra − suma de las depreciaciones de los 3 años.', 'Pasa la venta a UF y calcula Vta − VL.', 'Suma cada columna.'],
+    cases: ['<b>T = 2</b>: se deprecia los años 1 y 2; el año 3 va vacío y el VL es 0.', '<b>T mayor que 3</b> (soldadora con T = 5, o depreciación normal): se deprecia los 3 años y queda VL mayor que 0.', 'Si la venta es menor que el VL, Vta − VL es negativo (pérdida): en el flujo resta.', 'El terreno, si aparece, no se deprecia: VL = compra.'],
+    head: ['Activo', 'Compra', 'Compra UF', 'T', 'Año 1', 'Año 2', 'Año 3', 'VL', 'Venta UF', 'Vta − VL'],
+    rows: [...o.D.map(d => [d.n, { t: orig(C, d.buy) }, V(d.b, `${d.n}: ${conv(C, d.buy, d.b)}`), { t: String(d.T) },
+      ...yrs.map(t => t > d.T ? { t: '' } : V(d.ys[t - 1], t === d.T && d.ys[t - 1] !== d.d ? `${d.n}, año ${t} (último de su vida útil): ${nf(d.b)} − ${nf(d.d)}×${d.T - 1} = ${nf(d.ys[t - 1])} (ajuste del centavo)` : `${d.n}, año ${t}: ${nf(d.b)} ÷ ${d.T} = ${nf(d.d)}`)),
+      V(d.VL, `${d.n}: VL = ${nf(d.b)} − (${d.ys.filter(x => x).map(nf).join(' + ')}) = ${nf(d.VL)}`), V(d.s, `${d.n}: venta ${conv(C, d.sale, d.s)}`), V(d.dif, `${d.n}: Vta − VL = ${nf(d.s)} − ${nf(d.VL)} = ${nf(d.dif)}`)]),
+      ['Total', { t: '' }, V(o.act, `Total compra = ${nf(o.act)} UF (es la "compra de activos" de la inversión inicial)`), { t: '' }, ...o.dep.map((x, k) => V(x, `Depreciación total año ${k + 1} = ${nf(x)} (va al flujo de caja)`)), V(o.VL, `VL total = ${nf(o.VL)} (se suma al flujo el año 3)`), V(o.vta, `Venta total = ${nf(o.vta)}`), V(o.dif, `Vta − VL total = ${nf(o.dif)} (va antes del impuesto en el año 3)`), 'total'],
+    ] });
+  // 4. Inversión inicial
+  T.push({ id: 'inv', n: '4', title: 'Inversión inicial',
+    asks: 'Todo lo que hay que poner en el año 0. Junta los resultados de las tablas 1, 2 y 3 y agrega los imprevistos.',
+    steps: ['Capital de trabajo (tabla 2).', 'Puesta en marcha (tabla 1).', 'Compra de activos (total de la tabla 3).', `Imprevistos = ${pc(C.imprev)} × (capital de trabajo + puesta en marcha + activos).`, 'Total = la suma de las cuatro.'],
+    cases: ['Los imprevistos se calculan sobre la suma de los otros tres ítems, no solo sobre los activos.', 'Usa el % del enunciado. En 2024 el enunciado decía 20% y la pauta usó 15%.'],
+    head: ['Inversión', 'UF'],
+    rows: [['Capital de trabajo', V(o.CT, `De la tabla 2: ${nf(o.CT)}`)], ['Puesta en marcha', V(o.pem, `De la tabla 1: ${nf(o.pem)}`)], ['Compra de activos', V(o.act, `Total de compra de la tabla 3: ${nf(o.act)}`)],
+      ['Imprevistos (' + pc(C.imprev) + ')', V(o.imp, `${pc(C.imprev)} × (${nf(o.CT)} + ${nf(o.pem)} + ${nf(o.act)}) = ${pc(C.imprev)} × ${nf(o.base)} = ${nf(o.imp)}`)],
+      ['Total inversión inicial', V(o.inv, `${nf(o.CT)} + ${nf(o.pem)} + ${nf(o.act)} + ${nf(o.imp)} = ${nf(o.inv)}`), 'total']] });
+  // 5. Amortización
+  const L = o.L, i = C.iLP;
+  T.push({ id: 'amo', n: '5', title: 'Tabla de amortización (crédito LP, cuota fija)',
+    asks: `El banco presta el ${pc(C.lp)} de la inversión inicial, a 3 años, al ${pc(C.iLP)} anual, en cuotas iguales.`,
+    steps: [`Principal del año 0 = ${pc(C.lp)} × inversión inicial.`, 'Cuota = P · i(1+i)³ / ((1+i)³ − 1). Es la misma los 3 años.', 'Interés de cada año = principal del año anterior × i.', 'Amortización = cuota − interés.', 'Principal nuevo = principal anterior − amortización.', 'El año 3 se amortiza todo lo que queda; si por redondeo la cuota cambia en un centavo, se deja así.'],
+    cases: ['Con <b>período de gracia</b> (si lo dieran): esos años solo se paga interés y el principal no baja.', 'El interés va al flujo antes del impuesto (escudo fiscal); la amortización va después.'],
+    head: ['Período', '0', '1', '2', '3'],
+    rows: [['Principal', ...L.map(l => V(l.P, l.t === 0 ? `Principal = ${pc(C.lp)} × ${nf(o.inv)} = ${nf(l.P)}` : `Principal año ${l.t} = ${nf(L[l.t - 1].P)} − ${nf(l.A)} = ${nf(l.P)}`))],
+      ['Amortización', { t: '' }, ...L.slice(1).map(l => V(l.A, l.t < 3 ? `Amortización año ${l.t} = cuota − interés = ${nf(l.C)} − ${nf(l.I)} = ${nf(l.A)}` : `Año 3: se amortiza todo lo que queda = ${nf(l.A)}`))],
+      ['Interés', { t: '' }, ...L.slice(1).map(l => V(l.I, `Interés año ${l.t} = ${nf(L[l.t - 1].P)} × ${pc(i)} = ${nf(l.I)}`))],
+      ['Pago o cuota', { t: '' }, ...L.slice(1).map(l => V(l.C, l.t < 3 ? `Cuota = ${nf(L[0].P)} × ${nf(i, 2)}·(1+${nf(i, 2)})³ / ((1+${nf(i, 2)})³ − 1) = ${nf(o.cuota)}` : `Año 3: amortización + interés = ${nf(l.A)} + ${nf(l.I)} = ${nf(l.C)}`)), 'total']] });
+  // 6. Flujo de caja
+  const F = o.F, Y = (k, f, def = { t: '' }) => F.map(x => f(x) ?? def);
+  const fz = (x) => x === 0 ? { t: '' } : null;
+  T.push({ id: 'flujo', n: '6', title: 'Flujo de caja, VAN y PRI',
+    asks: `Impuesto ${pc(C.tax)}. El inversionista solo pone plata en el año 0: si un año el total anual da negativo, se pide un crédito de corto plazo (al ${pc(C.iCP)}) que se devuelve al año siguiente.`,
+    steps: ['Ingresos del año = unidades del año × precio (el precio completo; el reparto contado/cuota solo importa mes a mes).', 'Costos del año = 12 × servicios + 12 × sueldos + unidades × costo unitario.', 'Utilidad = ingresos − costos.', 'Resta los intereses LP (tabla 5), los intereses CP (crédito CP del año anterior × tasa CP), la depreciación (tabla 3), suma Vta − VL el año 3, y resta la pérdida del año anterior si la hubo.', 'Utilidad antes de impuesto (UAI). Si es positiva, impuesto = 25% × UAI; si es negativa, no hay impuesto.', 'Después del impuesto vuelve a sumar la pérdida anterior y la depreciación; resta la amortización LP y la CP; el año 3 suma el VL de los activos y recupera el capital de trabajo.', 'Año 0: resta capital de trabajo, puesta en marcha, activos e imprevistos; suma el crédito LP.', 'Total anual + créditos = flujo neto. Actualiza: FN ÷ (1 + tasa)^año. Acumula. VAN = último acumulado; PRI = primer año con acumulado positivo.'],
+    cases: ['<b>UAI negativa</b> (año 1 casi siempre): impuesto 0, y esa pérdida se resta el año siguiente antes del impuesto (y se suma después).', '<b>Total anual negativo</b>: crédito CP por ese monto, así el flujo neto queda en 0. Al año siguiente aparece el interés CP (antes del impuesto) y la amortización CP (después).', '<b>Año 3</b>: Vta − VL antes del impuesto; VL y capital de trabajo después. No se pide crédito CP el último año.', 'Si el acumulado nunca llega a positivo, el proyecto no recupera la inversión en 3 años (VAN negativo).'],
+    head: ['', 'Año', '0', '1', '2', '3'],
+    rows: [
+      ['+', 'Ingresos', ...Y(0, x => x.t ? V(x.ing, `Año ${x.t}: ${x.q} unidades × ${nf(o.price)} = ${nf(x.ing)}`) : null)],
+      ['−', 'Costos', ...Y(0, x => x.t ? V(-x.cost, `Año ${x.t}: 12×${nf(o.serv)} + 12×${nf(o.suel)} + ${x.q}×${nf(o.unit)} = ${nf(x.cS)} + ${nf(x.cW)} + ${nf(x.cP)} = ${nf(x.cost)}`) : null)],
+      ['=', 'Utilidad', ...Y(0, x => x.t ? V(x.U, `Año ${x.t}: ${nf(x.ing)} − ${nf(x.cost)} = ${nf(x.U)}`) : null)],
+      ['−', 'Intereses LP', ...Y(0, x => x.t ? V(-x.iLP, `Año ${x.t}: interés de la tabla 5 = ${nf(x.iLP)}`) : null)],
+      ['−', 'Intereses CP', ...Y(0, x => x.t ? (x.iCP ? V(-x.iCP, `Año ${x.t}: crédito CP del año ${x.t - 1} (${nf(F[x.t - 1].CP)}) × ${pc(C.iCP)} = ${nf(x.iCP)}`) : fz(0)) : null)],
+      ['−', 'Depreciación', ...Y(0, x => x.t ? (x.dep ? V(-x.dep, `Año ${x.t}: total de la tabla 3 = ${nf(x.dep)}`) : fz(0)) : null)],
+      ['−/+', 'Dif. venta activos − VL', ...Y(0, x => x.t === 3 ? V(x.dif, `Año 3: Vta − VL total de la tabla 3 = ${nf(x.dif)}`) : null)],
+      ['−', 'Pérd. ejercicio anterior', ...Y(0, x => x.t ? (x.pea ? V(-x.pea, `Año ${x.t}: la UAI del año ${x.t - 1} fue ${nf(F[x.t - 1].UAI)} ⇒ se resta ${nf(x.pea)}`) : fz(0)) : null)],
+      ['=', 'Utilidad antes de impuesto', ...Y(0, x => x.t ? V(x.UAI, `Año ${x.t}: ${nf(x.U)} − ${nf(x.iLP)} − ${nf(x.iCP)} − ${nf(x.dep)} ${x.dif < 0 ? '− ' + nf(-x.dif) : '+ ' + nf(x.dif)} − ${nf(x.pea)} = ${nf(x.UAI)}`) : null), 'key'],
+      ['−', 'Impuesto ' + pc(C.tax), ...Y(0, x => x.t ? (x.tax ? V(-x.tax, `Año ${x.t}: ${pc(C.tax)} × ${nf(x.UAI)} = ${nf(x.tax)}`) : V(0, `Año ${x.t}: la UAI es negativa ⇒ no se paga impuesto`)) : null)],
+      ['=', 'Utilidad después de impuesto', ...Y(0, x => x.t ? V(x.UDI, `Año ${x.t}: ${nf(x.UAI)} − ${nf(x.tax)} = ${nf(x.UDI)}`) : null)],
+      ['+', 'Pérd. ejercicio anterior', ...Y(0, x => x.t ? (x.pea ? V(x.pea, `Año ${x.t}: se devuelve la pérdida restada arriba (no es salida de caja) = ${nf(x.pea)}`) : fz(0)) : null)],
+      ['+', 'Depreciación', ...Y(0, x => x.t ? (x.dep ? V(x.dep, `Año ${x.t}: se devuelve la depreciación (no es salida de caja) = ${nf(x.dep)}`) : fz(0)) : null)],
+      ['−', 'Amortización LP', ...Y(0, x => x.t ? V(-x.amLP, `Año ${x.t}: amortización de la tabla 5 = ${nf(x.amLP)}`) : null)],
+      ['−', 'Amortización CP', ...Y(0, x => x.t ? (x.amCP ? V(-x.amCP, `Año ${x.t}: se devuelve el crédito CP del año ${x.t - 1} = ${nf(x.amCP)}`) : fz(0)) : null)],
+      ['+', 'Venta activos a VL', ...Y(0, x => x.t === 3 ? V(x.vl, `Año 3: VL total de la tabla 3 = ${nf(x.vl)}`) : null)],
+      ['−/+', 'Capital de trabajo', ...Y(0, x => x.t === 0 ? V(-o.CT, `Año 0: se invierte el capital de trabajo = ${nf(o.CT)}`) : x.t === 3 ? V(o.CT, `Año 3: se recupera el capital de trabajo = ${nf(o.CT)}`) : null)],
+      ['−', 'Puesta en marcha', ...Y(0, x => x.t === 0 ? V(-o.pem, `Año 0: tabla 1 = ${nf(o.pem)}`) : null)],
+      ['−', 'Inversión en activos', ...Y(0, x => x.t === 0 ? V(-o.act, `Año 0: total compra tabla 3 = ${nf(o.act)}`) : null)],
+      ['−', 'Imprevistos', ...Y(0, x => x.t === 0 ? V(-o.imp, `Año 0: tabla 4 = ${nf(o.imp)}`) : null)],
+      ['=', 'Total anual', ...Y(0, x => V(x.total, x.t === 0 ? `Año 0: −${nf(o.inv)} (toda la inversión inicial)` : `Año ${x.t}: ${nf(x.UDI)} + ${nf(x.pea)} + ${nf(x.dep)} − ${nf(x.amLP)} − ${nf(x.amCP)}${x.t === 3 ? ' + ' + nf(x.vl) + ' + ' + nf(x.ct) : ''} = ${nf(x.total)}`)), 'total'],
+      ['+', 'Crédito LP', ...Y(0, x => x.t === 0 ? V(o.P0, `Año 0: principal de la tabla 5 = ${nf(o.P0)}`) : null)],
+      ['+', 'Crédito CP', ...Y(0, x => x.CP ? V(x.CP, `Año ${x.t}: el total anual es ${nf(x.total)} y el inversionista no pone más plata ⇒ crédito CP = ${nf(x.CP)}`) : null)],
+      ['=', 'Flujo neto', ...Y(0, x => V(x.FN, `Año ${x.t}: ${nf(x.total)} + ${nf(x.t ? x.CP : o.P0)} = ${nf(x.FN)}`)), 'key'],
+      ['', 'Flujo neto actualizado', ...Y(0, x => V(x.VA, `Año ${x.t}: ${nf(x.FN)} ÷ (1 + ${nf(C.rate, 2)})^${x.t} = ${nf(x.VA)}`))],
+      ['', 'Flujo neto acumulado', ...Y(0, x => V(x.acc, `Año ${x.t}: ${x.t ? nf(F[x.t - 1].acc) + ' + ' + nf(x.VA) : nf(x.VA)} = ${nf(x.acc)}${o.PRI === x.t ? '  ← primer acumulado positivo (PRI)' : ''}`, { key: o.PRI === x.t }))],
+    ],
+    signCol: true,
+    result: [['VAN', o.VAN, `VAN = último flujo acumulado = ${nf(o.VAN)} UF ⇒ ${o.VAN >= 0 ? 'como es ≥ 0, el proyecto se recomienda' : 'como es negativo, no se recomienda'}`], ['PRI', o.PRI ?? 0, o.PRI ? `PRI = año ${o.PRI} (primer año con acumulado positivo)` : 'No se recupera la inversión dentro de los 3 años'], ...(o.TIR !== null ? [['TIR (%)', +(o.TIR * 100).toFixed(2), `TIR = ${nf(o.TIR * 100)}% (la tasa que deja el VAN en 0). ${o.TIR > C.rate ? 'Es mayor que la tasa de descuento: el VAN es positivo.' : 'Es menor que la tasa de descuento.'}`]] : [])] });
+  return T;
+}
+
+// ---------- render ----------
+let CUR = null, cells = [];
+function render() {
+  const C = state.caseId === 'new' ? randomCase(state.seed) : CASES[state.caseId];
+  const o = solve(C); CUR = { C, o }; cells = [];
+  for (const b of document.querySelectorAll('#caseSeg button')) b.setAttribute('aria-pressed', String(b.dataset.case === state.caseId));
+  for (const b of document.querySelectorAll('#modeSeg button')) b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode));
+  const P = state.mode === 'practice';
+  let html = enunciado(C, o);
+  for (const T of tables(C, o)) {
+    const rowsHtml = T.rows.map((row) => {
+      const cls = typeof row[row.length - 1] === 'string' ? row.pop() : '';
+      const first = T.signCol ? `<td class="sign">${esc(row[0])}</td><th class="rowh" scope="row">${esc(row[1])}</th>` : `<th class="rowh" scope="row">${esc(row[0])}</th>`;
+      const rest = (T.signCol ? row.slice(2) : row.slice(1)).map(c => {
+        if (!c || c.t !== undefined) return `<td>${esc(c ? c.t : '')}</td>`;
+        const id = cells.push(c) - 1;
+        const neg = c.v < 0 ? ' neg' : '';
+        if (P) return `<td class="v${neg}" data-i="${id}"><input id="in-${T.id}-${id}" inputmode="decimal" autocomplete="off" aria-label="valor"></td>`;
+        return `<td class="v${neg}" data-i="${id}" tabindex="0">${nf(c.v)}</td>`;
+      }).join('');
+      return `<tr class="${cls}">${first}${rest}</tr>`;
+    }).join('');
+    const res = (T.result || []).map(([n, v, how]) => { const id = cells.push({ v, how }) - 1; return `<span class="pill ${n === 'VAN' ? (v >= 0 ? 'good' : 'badp') : ''}" data-i="${id}" tabindex="0" style="cursor:pointer">${esc(n)} = <span class="num">${P ? '?' : nf(v, n === 'PRI' ? 0 : 2)}</span></span>`; }).join('');
+    html += `<section class="step card" id="t-${T.id}">
+      <h2><span class="n">${T.n === '0' ? 'Paso 0' : 'Problema ' + T.n}</span>${esc(T.title)}</h2>
+      <p>${esc(T.asks)}</p>
+      <div class="how"><div><h3>Cómo se llena</h3><ol>${T.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div><div class="cases"><h3>Casos distintos que te pueden tocar</h3><ul>${T.cases.map(s => `<li>${s}</li>`).join('')}</ul></div></div>
+      <div class="tscroll"><table><thead><tr>${(T.signCol ? ['', ...T.head.slice(1)] : T.head).map(hd => `<th scope="col">${esc(hd)}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
+      ${res ? `<div class="result">${res}</div>` : ''}
+      ${P ? `<div class="practice-bar"><button class="btn primary chk">Revisar esta tabla</button><button class="btn show">Mostrar la solución</button><span class="score"></span></div>` : ''}
+      <div class="explain" aria-live="polite">${P ? 'Llena las celdas con 2 decimales (los negativos con signo menos, como en la pauta) y presiona Revisar. Después toca una celda para ver cómo se calcula.' : 'Toca un número de la tabla para ver de dónde sale.'}</div>
+    </section>`;
+  }
+  $('#app').innerHTML = html;
+}
+const parse = (s) => { s = String(s).trim().replace(/\s/g, ''); if (!s) return NaN; if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, ''); return Number(s); };
+const near = (a, b) => Math.abs(a - b) <= Math.max(0.021, Math.abs(b) * 0.002);
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (b && b.dataset.case) { if (b.dataset.case === 'new') state.seed = (Math.random() * 1e9) >>> 0; state.caseId = b.dataset.case; save(); render(); return; }
+  if (b && b.dataset.mode) { state.mode = b.dataset.mode; save(); render(); return; }
+  const sec = e.target.closest('section.step');
+  if (b && sec && (b.classList.contains('chk') || b.classList.contains('show'))) {
+    let ok = 0, n = 0;
+    for (const td of sec.querySelectorAll('td.v')) {
+      const c = cells[+td.dataset.i], inp = td.querySelector('input'); n++;
+      if (b.classList.contains('show')) { if (inp) inp.value = nf(c.v); td.classList.remove('badc'); td.classList.add('ok'); ok++; continue; }
+      const good = inp && near(parse(inp.value), c.v); if (good) ok++;
+      td.classList.toggle('ok', good); td.classList.toggle('badc', !good);
+    }
+    for (const p of sec.querySelectorAll('.pill')) p.querySelector('.num').textContent = nf(cells[+p.dataset.i].v, p.textContent.startsWith('PRI') ? 0 : 2);
+    $('.score', sec).textContent = b.classList.contains('show') ? '' : `${ok} de ${n} correctas`;
+    return;
+  }
+  const t = e.target.closest('[data-i]');
+  if (t && sec) {
+    if (state.mode === 'practice' && t.tagName === 'TD' && !t.classList.contains('ok') && !t.classList.contains('badc')) return;
+    showHow(sec, t);
+  }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('[data-i][tabindex]')) showHow(e.target.closest('section.step'), e.target); });
+function showHow(sec, t) {
+  for (const x of sec.querySelectorAll('.sel')) x.classList.remove('sel');
+  t.classList.add('sel');
+  const c = cells[+t.dataset.i];
+  $('.explain', sec).innerHTML = `<b>${nf(c.v)}</b><span class="f">${esc(c.how)}</span>`;
+}
+render();
+</script>
